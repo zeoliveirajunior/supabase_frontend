@@ -4,9 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/login_page.dart';
 import '../../features/dashboard/presentation/dashboard_page.dart';
+import '../../features/logs/presentation/logs_page.dart';
+import '../../features/profiles/presentation/profiles_page.dart';
 import '../../features/session/application/session_controller.dart';
 import '../../features/session/presentation/branch_selection_page.dart';
 import '../../features/session/presentation/no_company_page.dart';
+import '../../features/users/presentation/users_page.dart';
 import '../../shared/widgets/splash_page.dart';
 
 abstract final class AppRoutes {
@@ -15,6 +18,9 @@ abstract final class AppRoutes {
   static const selectBranch = '/selecionar-filial';
   static const noCompany = '/sem-empresa';
   static const dashboard = '/dashboard';
+  static const users = '/usuarios';
+  static const profiles = '/perfis';
+  static const logs = '/logs';
 
   /// Rotas que nao fazem sentido com a sessao pronta.
   static const transient = {splash, login, selectBranch, noCompany};
@@ -69,6 +75,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.dashboard,
         builder: (_, __) => const DashboardPage(),
       ),
+      GoRoute(path: AppRoutes.users, builder: (_, __) => const UsersPage()),
+      GoRoute(
+        path: AppRoutes.profiles,
+        builder: (_, __) => const ProfilesPage(),
+      ),
+      GoRoute(path: AppRoutes.logs, builder: (_, __) => const LogsPage()),
     ],
   );
 });
