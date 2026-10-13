@@ -1,0 +1,110 @@
+# Deploy ANDROID, manual (workflow_dispatch). A BRANCH escolhida define o environment:
+# staging -> homologacao | main -> producao.
+#
+# Environment (vars):  SUPABASE_URL, SUPABASE_ANON_KEY
+# Assinatura (secrets, opcionais): ANDROID_KEYSTORE_B64 (keystore em base64),
+#   ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD.
+#   Sem eles o APK/AAB sai assinado com a chave de debug (serve para teste interno).
+# Publicacao (secret, opcional): PLAY_SERVICE_ACCOUNT_JSON -> Google Play
+#   (faixa internal em staging, production em main). Sem ele, APK e AAB ficam como artifacts.
+name: Deploy Android
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-android-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    name: Guard (branch -> environment)
+    runs-on: ubuntu-latest
+    outputs:
+      env: ${{ steps.pick.outputs.env }}
+    steps:
+      - id: pick
+        run: |
+          case "${{ github.ref_name }}" in
+            staging) echo "env=staging"    >> "$GITHUB_OUTPUT" ;;
+            main)    echo "env=production" >> "$GITHUB_OUTPUT" ;;
+            *) echo "::error::Deploy so a partir de staging (homologacao) ou main (producao). Ref atual: ${{ github.ref_name }}"; exit 1 ;;
+          esac
+
+  build:
+    name: Build Android -> ${{ needs.guard.outputs.env }}
+    needs: guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment: ${{ needs.guard.outputs.env }}
+    env:
+      APP_ENV: ${{ needs.guard.outputs.env }}
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_B64 != '' }}
+      HAS_PLAY: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
+      PACKAGE_NAME: br.com.odonto.odonto_app
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Valida configuracao do environment
+        run: |
+          fail() { echo "::error::$*"; exit 1; }
+          [ -n "${{ vars.SUPABASE_URL }}" ]      || fail "vars.SUPABASE_URL vazio no environment $APP_ENV"
+          [ -n "${{ vars.SUPABASE_ANON_KEY }}" ] || fail "vars.SUPABASE_ANON_KEY vazio no environment $APP_ENV"
+          if [ "$APP_ENV" = "production" ] && [ "$HAS_KEYSTORE" != "true" ]; then
+            fail "Producao exige keystore de release (ANDROID_KEYSTORE_B64 e senhas no environment production)."
+          fi
+          echo "environment=$APP_ENV keystore=$HAS_KEYSTORE play=$HAS_PLAY"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.8'
+          channel: stable
+          cache: true
+
+      - name: Keystore de release
+        if: env.HAS_KEYSTORE == 'true'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > android/app/upload-keystore.jks
+          cat > android/key.properties <<EOF
+          storeFile=upload-keystore.jks
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          EOF
+
+      - name: Build APK e AAB
+        run: |
+          flutter pub get
+          DEFINES="--dart-define=APP_ENV=$APP_ENV --dart-define=SUPABASE_URL=${{ vars.SUPABASE_URL }} --dart-define=SUPABASE_ANON_KEY=${{ vars.SUPABASE_ANON_KEY }}"
+          flutter build apk       --release --build-number=${{ github.run_number }} $DEFINES
+          flutter build appbundle --release --build-number=${{ github.run_number }} $DEFINES
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ env.APP_ENV }}-${{ github.run_number }}
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
+          retention-days: 14
+
+      - name: Publica no Google Play
+        if: env.HAS_PLAY == 'true' && env.HAS_KEYSTORE == 'true'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ env.PACKAGE_NAME }}
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: ${{ env.APP_ENV == 'production' && 'production' || 'internal' }}
+          status: completed
+
+      - name: Sem destino de publicacao configurado
+        if: env.HAS_PLAY != 'true' || env.HAS_KEYSTORE != 'true'
+        run: echo "::notice::APK e AAB prontos como artifact. Para publicar no Google Play, configure PLAY_SERVICE_ACCOUNT_JSON e a keystore de release no environment $APP_ENV."

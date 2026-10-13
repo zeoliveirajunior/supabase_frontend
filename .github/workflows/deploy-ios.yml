@@ -1,0 +1,118 @@
+# Deploy iOS, manual (workflow_dispatch), em runner macOS. A BRANCH escolhida define o
+# environment: staging -> homologacao | main -> producao.
+#
+# Environment (vars):  SUPABASE_URL, SUPABASE_ANON_KEY, IOS_BUNDLE_ID
+# Assinatura e publicacao (secrets, opcionais):
+#   APPLE_CERT_P12_B64, APPLE_CERT_PASSWORD           certificado de distribuicao
+#   APPLE_API_KEY_ID, APPLE_API_ISSUER_ID,
+#   APPLE_API_PRIVATE_KEY                              App Store Connect API key (.p8)
+# Com tudo isso: IPA assinado + upload para o TestFlight.
+# Sem: build sem assinatura (Runner.app) como artifact, para validar que compila.
+name: Deploy iOS
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-ios-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    name: Guard (branch -> environment)
+    runs-on: ubuntu-latest
+    outputs:
+      env: ${{ steps.pick.outputs.env }}
+    steps:
+      - id: pick
+        run: |
+          case "${{ github.ref_name }}" in
+            staging) echo "env=staging"    >> "$GITHUB_OUTPUT" ;;
+            main)    echo "env=production" >> "$GITHUB_OUTPUT" ;;
+            *) echo "::error::Deploy so a partir de staging (homologacao) ou main (producao). Ref atual: ${{ github.ref_name }}"; exit 1 ;;
+          esac
+
+  build:
+    name: Build iOS -> ${{ needs.guard.outputs.env }}
+    needs: guard
+    runs-on: macos-latest
+    timeout-minutes: 60
+    environment: ${{ needs.guard.outputs.env }}
+    env:
+      APP_ENV: ${{ needs.guard.outputs.env }}
+      HAS_APPLE: ${{ secrets.APPLE_CERT_P12_B64 != '' && secrets.APPLE_API_KEY_ID != '' && vars.IOS_BUNDLE_ID != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Valida configuracao do environment
+        run: |
+          fail() { echo "::error::$*"; exit 1; }
+          [ -n "${{ vars.SUPABASE_URL }}" ]      || fail "vars.SUPABASE_URL vazio no environment $APP_ENV"
+          [ -n "${{ vars.SUPABASE_ANON_KEY }}" ] || fail "vars.SUPABASE_ANON_KEY vazio no environment $APP_ENV"
+          echo "environment=$APP_ENV apple=$HAS_APPLE"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.8'
+          channel: stable
+          cache: true
+
+      - name: Certificado de distribuicao
+        if: env.HAS_APPLE == 'true'
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.APPLE_CERT_P12_B64 }}
+          p12-password: ${{ secrets.APPLE_CERT_PASSWORD }}
+
+      - name: Provisioning profiles
+        if: env.HAS_APPLE == 'true'
+        uses: apple-actions/download-provisioning-profiles@v3
+        with:
+          bundle-id: ${{ vars.IOS_BUNDLE_ID }}
+          issuer-id: ${{ secrets.APPLE_API_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPLE_API_KEY_ID }}
+          api-private-key: ${{ secrets.APPLE_API_PRIVATE_KEY }}
+
+      - name: Dependencias
+        run: flutter pub get
+
+      - name: Build IPA (assinado)
+        if: env.HAS_APPLE == 'true'
+        run: |
+          flutter build ipa --release \
+            --export-method app-store \
+            --build-number=${{ github.run_number }} \
+            --dart-define=APP_ENV=$APP_ENV \
+            --dart-define=SUPABASE_URL=${{ vars.SUPABASE_URL }} \
+            --dart-define=SUPABASE_ANON_KEY=${{ vars.SUPABASE_ANON_KEY }}
+
+      - name: Upload para o TestFlight
+        if: env.HAS_APPLE == 'true'
+        uses: apple-actions/upload-testflight-build@v1
+        with:
+          app-path: build/ios/ipa/*.ipa
+          issuer-id: ${{ secrets.APPLE_API_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPLE_API_KEY_ID }}
+          api-private-key: ${{ secrets.APPLE_API_PRIVATE_KEY }}
+
+      - name: Build sem assinatura (smoke)
+        if: env.HAS_APPLE != 'true'
+        run: |
+          flutter build ios --release --no-codesign \
+            --build-number=${{ github.run_number }} \
+            --dart-define=APP_ENV=$APP_ENV \
+            --dart-define=SUPABASE_URL=${{ vars.SUPABASE_URL }} \
+            --dart-define=SUPABASE_ANON_KEY=${{ vars.SUPABASE_ANON_KEY }}
+          echo "::notice::Build sem assinatura. Para gerar IPA e publicar no TestFlight, configure os secrets APPLE_* e a var IOS_BUNDLE_ID no environment $APP_ENV."
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-${{ env.APP_ENV }}-${{ github.run_number }}
+          path: |
+            build/ios/ipa/*.ipa
+            build/ios/iphoneos/Runner.app
+          if-no-files-found: warn
+          retention-days: 14

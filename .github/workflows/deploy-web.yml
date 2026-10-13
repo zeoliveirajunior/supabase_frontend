@@ -1,0 +1,88 @@
+# Deploy WEB, manual (workflow_dispatch). A BRANCH escolhida ao disparar define o
+# environment: staging -> homologacao | main -> producao. Qualquer outra ref e recusada.
+#
+# Environment (vars):  SUPABASE_URL, SUPABASE_ANON_KEY (chave publicavel)
+# Publicacao (opcional): Firebase Hosting, se existirem
+#   secret FIREBASE_SERVICE_ACCOUNT (JSON da service account) e var FIREBASE_PROJECT_ID.
+#   Sem eles o build fica disponivel como artifact do workflow.
+name: Deploy Web
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+concurrency:
+  group: deploy-web-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    name: Guard (branch -> environment)
+    runs-on: ubuntu-latest
+    outputs:
+      env: ${{ steps.pick.outputs.env }}
+    steps:
+      - id: pick
+        run: |
+          case "${{ github.ref_name }}" in
+            staging) echo "env=staging"    >> "$GITHUB_OUTPUT" ;;
+            main)    echo "env=production" >> "$GITHUB_OUTPUT" ;;
+            *) echo "::error::Deploy so a partir de staging (homologacao) ou main (producao). Ref atual: ${{ github.ref_name }}"; exit 1 ;;
+          esac
+
+  build:
+    name: Build web -> ${{ needs.guard.outputs.env }}
+    needs: guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: ${{ needs.guard.outputs.env }}
+    env:
+      APP_ENV: ${{ needs.guard.outputs.env }}
+      HAS_FIREBASE: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' && vars.FIREBASE_PROJECT_ID != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Valida configuracao do environment
+        run: |
+          fail() { echo "::error::$*"; exit 1; }
+          [ -n "${{ vars.SUPABASE_URL }}" ]      || fail "vars.SUPABASE_URL vazio no environment $APP_ENV"
+          [ -n "${{ vars.SUPABASE_ANON_KEY }}" ] || fail "vars.SUPABASE_ANON_KEY vazio no environment $APP_ENV"
+          echo "environment=$APP_ENV firebase=$HAS_FIREBASE"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.8'
+          channel: stable
+          cache: true
+
+      - name: Build
+        run: |
+          flutter pub get
+          flutter build web --release \
+            --build-number=${{ github.run_number }} \
+            --dart-define=APP_ENV=$APP_ENV \
+            --dart-define=SUPABASE_URL=${{ vars.SUPABASE_URL }} \
+            --dart-define=SUPABASE_ANON_KEY=${{ vars.SUPABASE_ANON_KEY }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-${{ env.APP_ENV }}-${{ github.run_number }}
+          path: build/web
+          retention-days: 14
+
+      - name: Publica no Firebase Hosting
+        if: env.HAS_FIREBASE == 'true'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: ${{ vars.FIREBASE_PROJECT_ID }}
+          channelId: live
+
+      - name: Sem destino de publicacao configurado
+        if: env.HAS_FIREBASE != 'true'
+        run: echo "::notice::Build pronto como artifact. Para publicar, configure o secret FIREBASE_SERVICE_ACCOUNT e a var FIREBASE_PROJECT_ID no environment $APP_ENV."

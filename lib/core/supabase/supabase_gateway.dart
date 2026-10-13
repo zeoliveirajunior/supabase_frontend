@@ -1,0 +1,114 @@
+import 'dart:convert';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../config/app_config.dart';
+import '../errors/app_error.dart';
+
+/// UNICO ponto do app que fala com o Supabase.
+///
+/// Regras (ver CLAUDE.md):
+///   * Nenhuma tabela e lida ou escrita direto (`from(...)` nao existe aqui).
+///   * Todo dado passa por RPC do schema `ad`, que valida a sessao no banco.
+///   * Auth (signIn/signOut/sessao) e o Supabase Auth; e a unica excecao.
+///
+/// O teste `test/no_direct_supabase_access_test.dart` garante que nenhum outro
+/// arquivo importa `supabase_flutter` nem acessa tabela direto.
+class SupabaseGateway {
+  SupabaseGateway(this._client);
+
+  final SupabaseClient _client;
+
+  static Future<void> initialize() => Supabase.initialize(
+    url: AppConfig.supabaseUrl,
+    publishableKey: AppConfig.supabaseAnonKey,
+  );
+
+  bool get hasSession => _client.auth.currentSession != null;
+
+  /// uuid do usuario no Supabase Auth (null sem sessao).
+  String? get authUserId => _client.auth.currentUser?.id;
+
+  Stream<AuthState> get authChanges => _client.auth.onAuthStateChange;
+
+  Future<void> signInWithPassword({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      await _client.auth.signInWithPassword(email: email, password: password);
+    } on AuthException catch (e) {
+      throw _fromAuth(e);
+    } catch (e) {
+      throw AppError.unexpected(e);
+    }
+  }
+
+  Future<void> signOut() async {
+    try {
+      await _client.auth.signOut();
+    } on AuthException catch (e) {
+      throw _fromAuth(e);
+    }
+  }
+
+  /// Chama `ad.<function>(p_json)` com `nr_version` injetado.
+  /// Erros do banco chegam como `{"Message": "CHAVE", "Parameters": {...}}` e
+  /// viram [AppError] com a chave traduzida em `Strings`.
+  Future<Map<String, dynamic>> rpc(
+    String function, [
+    Map<String, dynamic> json = const {},
+  ]) async {
+    try {
+      final result = await _client
+          .schema('ad')
+          .rpc(
+            function,
+            params: {
+              'p_json': {'nr_version': AppConfig.contractVersion, ...json},
+            },
+          );
+      if (result is Map) return result.cast<String, dynamic>();
+      return {'result': result};
+    } on PostgrestException catch (e) {
+      throw _fromPostgrest(e);
+    } on AuthException catch (e) {
+      throw _fromAuth(e);
+    } on AppError {
+      rethrow;
+    } catch (e) {
+      throw AppError.unexpected(e);
+    }
+  }
+
+  static AppError _fromPostgrest(PostgrestException e) {
+    try {
+      final decoded = jsonDecode(e.message);
+      if (decoded is Map && decoded['Message'] is String) {
+        final params = decoded['Parameters'];
+        return AppError(
+          key: decoded['Message'] as String,
+          parameters: params is Map ? params.cast<String, dynamic>() : const {},
+        );
+      }
+    } catch (_) {
+      // mensagem nao e JSON: cai no fallback abaixo
+    }
+    return AppError(key: 'UNKNOWN', fallback: e.message);
+  }
+
+  static AppError _fromAuth(AuthException e) {
+    return switch (e.code) {
+      'invalid_credentials' => AppError(key: 'AUTH_INVALID_CREDENTIALS'),
+      'email_not_confirmed' => AppError(key: 'AUTH_EMAIL_NOT_CONFIRMED'),
+      'user_banned' => AppError(key: 'AUTH_USER_BANNED'),
+      'over_request_rate_limit' => AppError(key: 'AUTH_RATE_LIMIT'),
+      _ => AppError(key: 'AUTH_ERROR', fallback: e.message),
+    };
+  }
+}
+
+final supabaseGatewayProvider = Provider<SupabaseGateway>(
+  (ref) => SupabaseGateway(Supabase.instance.client),
+);

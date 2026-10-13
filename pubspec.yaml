@@ -1,0 +1,43 @@
+name: odonto_app
+description: "App da clinica odontologica: web, Android e iOS. Backend no Supabase (repositorio supabase)."
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # Backend: Supabase Auth + RPC (nunca tabelas direto)
+  supabase_flutter: ^2.8.0
+
+  # Estado e navegacao
+  flutter_riverpod: ^2.6.1
+  go_router: ^14.8.0
+
+  # UI
+  google_fonts: ^6.2.1
+  flutter_svg: ^2.0.17
+  mask_text_input_formatter: ^2.9.0
+  intl: ^0.20.2
+
+  # Dispositivo / persistencia leve
+  shared_preferences: ^2.5.3
+  package_info_plus: ^8.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/

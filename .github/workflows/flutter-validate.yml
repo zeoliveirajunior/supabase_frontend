@@ -1,0 +1,40 @@
+# Valida o app em todo PR para staging/main. Nao publica nada.
+#   formatacao (dart format) -> analise estatica (--fatal-infos) -> testes -> build web (smoke)
+name: Validate Flutter
+
+on:
+  pull_request:
+    branches: [staging, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Formatacao, analise, testes e build web
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.8'
+          channel: stable
+          cache: true
+
+      - name: Dependencias
+        run: flutter pub get
+
+      - name: Formatacao (dart format lib test)
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analise estatica
+        run: flutter analyze --fatal-infos
+
+      - name: Testes (unit + widget + guarda do gateway)
+        run: flutter test --reporter expanded
+
+      - name: Build web (smoke)
+        run: flutter build web --release
