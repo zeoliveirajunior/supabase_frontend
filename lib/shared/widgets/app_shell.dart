@@ -8,12 +8,30 @@ import '../../features/session/application/session_controller.dart';
 import '../../features/session/presentation/branch_selection_dialog.dart';
 import '../../l10n/strings.dart';
 import 'app_logo.dart';
-import 'app_snack.dart';
 
 enum AppSection { dashboard, users, profiles, logs }
 
+class _Destination {
+  const _Destination({
+    required this.section,
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+    required this.route,
+    this.adminOnly = false,
+  });
+
+  final AppSection section;
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+  final String route;
+  final bool adminOnly;
+}
+
 /// Moldura das telas internas: menu lateral no desktop, barra inferior no
 /// mobile, cabecalho com a filial atual (clicavel para trocar) e o usuario.
+/// Secoes de administrador somem do menu para usuarios comuns.
 class AppShell extends ConsumerWidget {
   const AppShell({
     super.key,
@@ -26,53 +44,59 @@ class AppShell extends ConsumerWidget {
   final Widget child;
   final String? title;
 
-  static const _destinations = [
-    (
-      AppSection.dashboard,
-      Icons.space_dashboard_outlined,
-      Icons.space_dashboard_rounded,
-      Strings.dashboard,
-      '/dashboard',
+  static const _all = [
+    _Destination(
+      section: AppSection.dashboard,
+      icon: Icons.space_dashboard_outlined,
+      selectedIcon: Icons.space_dashboard_rounded,
+      label: Strings.dashboard,
+      route: '/dashboard',
     ),
-    (
-      AppSection.users,
-      Icons.people_outline_rounded,
-      Icons.people_rounded,
-      Strings.users,
-      null,
+    _Destination(
+      section: AppSection.users,
+      icon: Icons.people_outline_rounded,
+      selectedIcon: Icons.people_rounded,
+      label: Strings.users,
+      route: '/usuarios',
+      adminOnly: true,
     ),
-    (
-      AppSection.profiles,
-      Icons.badge_outlined,
-      Icons.badge_rounded,
-      Strings.profiles,
-      null,
+    _Destination(
+      section: AppSection.profiles,
+      icon: Icons.badge_outlined,
+      selectedIcon: Icons.badge_rounded,
+      label: Strings.profiles,
+      route: '/perfis',
     ),
-    (
-      AppSection.logs,
-      Icons.receipt_long_outlined,
-      Icons.receipt_long_rounded,
-      Strings.logs,
-      null,
+    _Destination(
+      section: AppSection.logs,
+      icon: Icons.receipt_long_outlined,
+      selectedIcon: Icons.receipt_long_rounded,
+      label: Strings.logs,
+      route: '/logs',
     ),
   ];
 
-  int get _selectedIndex => _destinations
-      .indexWhere((d) => d.$1 == section)
-      .clamp(0, _destinations.length - 1);
-
-  void _onSelect(BuildContext context, int index) {
-    final route = _destinations[index].$5;
-    if (route == null) {
-      AppSnack.info(context, Strings.comingSoon);
-      return;
-    }
-    if (index != _selectedIndex) context.go(route);
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pageTitle = title ?? _destinations[_selectedIndex].$4;
+    final isAdmin = ref.watch(
+      sessionControllerProvider.select(
+        (s) => s.selected?.company.idAdmin ?? false,
+      ),
+    );
+    final destinations = [
+      for (final d in _all)
+        if (!d.adminOnly || isAdmin) d,
+    ];
+    final selectedIndex = destinations
+        .indexWhere((d) => d.section == section)
+        .clamp(0, destinations.length - 1);
+    final pageTitle =
+        title ?? _all.firstWhere((d) => d.section == section).label;
+
+    void onSelect(int index) {
+      final route = destinations[index].route;
+      if (index != selectedIndex) context.go(route);
+    }
 
     return ResponsiveBuilder(
       mobile: (_) => Scaffold(
@@ -87,14 +111,14 @@ class AppShell extends ConsumerWidget {
         ),
         body: child,
         bottomNavigationBar: NavigationBar(
-          selectedIndex: _selectedIndex,
-          onDestinationSelected: (i) => _onSelect(context, i),
+          selectedIndex: selectedIndex,
+          onDestinationSelected: onSelect,
           destinations: [
-            for (final d in _destinations)
+            for (final d in destinations)
               NavigationDestination(
-                icon: Icon(d.$2),
-                selectedIcon: Icon(d.$3),
-                label: d.$4,
+                icon: Icon(d.icon),
+                selectedIcon: Icon(d.selectedIcon),
+                label: d.label,
               ),
           ],
         ),
@@ -105,18 +129,18 @@ class AppShell extends ConsumerWidget {
             NavigationRail(
               extended: context.isWide,
               minExtendedWidth: 224,
-              selectedIndex: _selectedIndex,
-              onDestinationSelected: (i) => _onSelect(context, i),
+              selectedIndex: selectedIndex,
+              onDestinationSelected: onSelect,
               leading: Padding(
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                 child: AppLogo(size: 32, showWordmark: context.isWide),
               ),
               destinations: [
-                for (final d in _destinations)
+                for (final d in destinations)
                   NavigationRailDestination(
-                    icon: Icon(d.$2),
-                    selectedIcon: Icon(d.$3),
-                    label: Text(d.$4),
+                    icon: Icon(d.icon),
+                    selectedIcon: Icon(d.selectedIcon),
+                    label: Text(d.label),
                   ),
               ],
             ),

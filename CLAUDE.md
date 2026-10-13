@@ -9,8 +9,9 @@ sessão). Este repositório **não tem banco**: toda regra de negócio e toda se
 de sessão, quem acessa qual empresa/filial) vivem lá. Aqui só há telas, estado e chamadas de RPC.
 
 Telas hoje: **login** → **seleção de empresa/filial** (pop-up, só quando o usuário acessa mais de
-uma filial) → **dashboard** (em branco até existirem dados). Próximas: cadastro de usuários, cadastro
-de perfis de acesso, tela de logs.
+uma filial) → **dashboard** (em branco até existirem dados) → **usuários** (admin: vincular por e-mail,
+acesso por filial × perfil, bloquear, remover), **perfis de acesso** (lista para todos; criar/editar
+só admin) e **logs de acesso** (admin vê a empresa, usuário comum só os próprios).
 
 Pacote Dart `odonto_app`; id Android/iOS `br.com.odonto.odonto_app`; nome de exibição **Odonto**.
 
@@ -74,9 +75,12 @@ lib/
 ├── features/<feature>/           # domain (modelos) · data (repositórios) · application (controllers) · presentation (telas)
 │   ├── auth/                     # login
 │   ├── session/                  # session_context, seleção de filial, sem-empresa
-│   └── dashboard/
+│   ├── dashboard/
+│   ├── profiles/                 # access_profile_list / access_profile_save
+│   ├── users/                    # company_user_list / company_user_save / branch_list
+│   └── logs/                     # access_log_list
 ├── shared/
-│   ├── widgets/                  # AppTextField, AppPasswordField, AppButton, SearchableDropdown, AppShell, AppLogo, AppSnack, LoadingOverlay, SplashPage
+│   ├── widgets/                  # AppTextField, AppPasswordField, AppButton, SearchableDropdown, AppShell, AppPageHeader, AppTable, AppStatusChip/AppTagChip, AppEmptyState, AppConfirmDialog, AppPagination, Choice, AppLogo, AppSnack, LoadingOverlay, SplashPage
 │   ├── formatters/masks.dart     # MaskType: cpf, cnpj, cpfCnpj, phone, cep, date (+ unmask/format)
 │   └── validators/validators.dart# required, email, minLength, cpf, cnpj, cpfCnpj, phone, date, compose
 └── l10n/strings.dart             # textos pt-BR + tradução das chaves de erro
@@ -101,9 +105,19 @@ testes usam `AppTheme.light(useGoogleFonts: false)`).
 | `SearchableDropdown<T>(label, items, value, itemLabel, itemSubtitle, onChanged)` | combo com pesquisa (diálogo no desktop, folha inferior no mobile) |
 | `AppShell(section, child)` | moldura das telas internas: menu lateral (desktop) / barra inferior (mobile), filial atual e usuário |
 | `AppSnack.error/success/info(context, msg)` | mensagens rápidas |
+| `AppPageHeader(title, subtitle, actions)` | topo de toda tela interna |
+| `AppTable(columns, rows)` (desktop) + cards em `ListView` (mobile) | listagens; toda lista tem as duas formas via `ResponsiveBuilder` |
+| `AppStatusChip(status)`, `AppTagChip(label)` | situação (1/80/90) e etiquetas |
+| `AppEmptyState` / `AppEmptyState.error(onRetry)` | lista vazia e falha de carregamento |
+| `AppConfirmDialog.show(...)` | confirmação de ação destrutiva |
+| `AppPagination` + `Choice<T>` em `SearchableDropdown` | paginação e filtros (`Choice(value: null)` = todos) |
 | `AppLogo`, `SplashPage`, `LoadingOverlay` | marca e estados de carregamento |
 | `Masks.unmask(value)` | **sempre** antes de enviar CPF/CNPJ/telefone/CEP ao backend |
 
+Padrão de tela de cadastro: `features/<x>/{domain,data,application,presentation}`, estado em
+`AutoDisposeAsyncNotifier` que observa `currentCompanyProvider` (recarrega ao trocar de filial),
+filtros em `StateProvider`, formulário em `Dialog` que devolve `true` ao salvar, erros em `AppSnack`
+via `describeError(e)`. Seções só de administrador usam `isCompanyAdminProvider` (menu as esconde).
 Regras: nenhum `TextFormField`/`ElevatedButton`/`DropdownButton` direto nas telas; espaçamento só
 com `AppSpacing`, cantos com `AppRadius`, cores com `AppColors`; textos em `Strings` (nunca literal
 na tela, para futura i18n). Validação de formulário com `Form` + `AutovalidateMode.onUserInteraction`.
@@ -213,8 +227,6 @@ inglês; textos ao usuário em português, sempre em `Strings`.
 
 ## O que NÃO está aqui ainda (próximos passos conhecidos)
 
-- Cadastro de usuários (`company_user_save`), cadastro de perfis (`access_profile_save`) e tela de
-  logs (precisa de uma RPC nova de listagem no backend).
 - Criar empresa no primeiro acesso (`company_create`) e criar conta / recuperar senha.
 - Dashboard com dados.
 - Secrets de publicação nos environments (Firebase, Google Play, Apple).
