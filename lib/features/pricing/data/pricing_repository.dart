@@ -113,8 +113,7 @@ class PricingRepository {
       'nr_company': nrCompany,
       'nr_branch': nrBranch,
       if (params != null) 'params': params.toJson(),
-      if (expenses != null)
-        'expenses': [for (final e in expenses) e.toJson()],
+      if (expenses != null) 'expenses': [for (final e in expenses) e.toJson()],
       if (fees != null) 'fees': [for (final f in fees) f.toJson()],
     });
   }
@@ -134,7 +133,8 @@ class PricingRepository {
     final items = json['materials'];
     if (items is! List) return const [];
     return [
-      for (final m in items) MaterialItem.fromJson((m as Map).cast<String, dynamic>()),
+      for (final m in items)
+        MaterialItem.fromJson((m as Map).cast<String, dynamic>()),
     ];
   }
 

@@ -39,9 +39,8 @@ class PriceLookupSheet extends ConsumerStatefulWidget {
     }
     return showDialog<PriceOffer>(
       context: context,
-      builder: (_) => Dialog(
-        child: SizedBox(width: 600, height: 640, child: sheet),
-      ),
+      builder: (_) =>
+          Dialog(child: SizedBox(width: 600, height: 640, child: sheet)),
     );
   }
 

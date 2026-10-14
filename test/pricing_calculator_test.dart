@@ -91,10 +91,26 @@ void main() {
       expect(PricingCalculator.unitCost(10, 0, 0), 0);
       expect(
         PricingCalculator.monthlyCost(const [
-          ClinicExpense(vcName: 'Aluguel', itType: ExpenseType.fixed, vlAmount: 8000),
-          ClinicExpense(vcName: 'Limpeza', itType: ExpenseType.variable, vlAmount: 1000),
-          ClinicExpense(vcName: '13º', itType: ExpenseType.annual, vlAmount: 2400),
-          ClinicExpense(vcName: 'Anúncios', itType: ExpenseType.marketing, vlAmount: 800),
+          ClinicExpense(
+            vcName: 'Aluguel',
+            itType: ExpenseType.fixed,
+            vlAmount: 8000,
+          ),
+          ClinicExpense(
+            vcName: 'Limpeza',
+            itType: ExpenseType.variable,
+            vlAmount: 1000,
+          ),
+          ClinicExpense(
+            vcName: '13º',
+            itType: ExpenseType.annual,
+            vlAmount: 2400,
+          ),
+          ClinicExpense(
+            vcName: 'Anúncios',
+            itType: ExpenseType.marketing,
+            vlAmount: 800,
+          ),
         ]),
         10000,
       );

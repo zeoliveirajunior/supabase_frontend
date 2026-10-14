@@ -56,7 +56,10 @@ class PricingBreakdown extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Icon(Icons.error_outline_rounded, color: AppColors.danger),
+                const Icon(
+                  Icons.error_outline_rounded,
+                  color: AppColors.danger,
+                ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
@@ -69,7 +72,10 @@ class PricingBreakdown extends StatelessWidget {
           )
         else ...[
           _Line(_pct(Strings.cardFee, pcCard), Numbers.money(r.vlCard)),
-          _Line(_pct(Strings.commission, pcCommission), Numbers.money(r.vlCommission)),
+          _Line(
+            _pct(Strings.commission, pcCommission),
+            Numbers.money(r.vlCommission),
+          ),
           _Line(_pct(Strings.extraFees, pcFees), Numbers.money(r.vlFees)),
           _Line(_pct(taxLabel, pcTax), Numbers.money(r.vlTax)),
           _Line(

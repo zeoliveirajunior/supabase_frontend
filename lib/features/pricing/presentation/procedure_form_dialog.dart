@@ -227,7 +227,11 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
     Widget pair(Widget a, Widget b) => isMobile
         ? Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [a, const SizedBox(height: AppSpacing.md), b],
+            children: [
+              a,
+              const SizedBox(height: AppSpacing.md),
+              b,
+            ],
           )
         : Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -545,7 +549,12 @@ class _MaterialRow extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Row(children: [Expanded(child: name), remove]),
+            Row(
+              children: [
+                Expanded(child: name),
+                remove,
+              ],
+            ),
             const SizedBox(height: AppSpacing.xs),
             Row(
               children: [
@@ -627,9 +636,7 @@ class _ResultPanel extends StatelessWidget {
               ),
               SegmentedButton<int>(
                 showSelectedIcon: false,
-                style: const ButtonStyle(
-                  visualDensity: VisualDensity.compact,
-                ),
+                style: const ButtonStyle(visualDensity: VisualDensity.compact),
                 segments: const [
                   ButtonSegment(
                     value: TaxRegime.pf,

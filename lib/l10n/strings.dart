@@ -204,12 +204,14 @@ abstract final class Strings {
       'Tempo de cadeira. Define o custo da estrutura e a hora do profissional.';
   static const labCost = 'Laboratório / terceiros (R\$)';
   static const materialOther = 'Outros materiais (R\$)';
-  static const materialOtherHelp = 'Materiais sem cadastro, valor informado direto.';
+  static const materialOtherHelp =
+      'Materiais sem cadastro, valor informado direto.';
   static const currentPrice = 'Valor cobrado hoje (R\$)';
   static const currentPriceHelp = 'Só para comparar com o preço sugerido.';
   static const commissionOverride = 'Comissão própria (%)';
   static const profitOverride = 'Lucro próprio (%)';
-  static String defaultValue(String value) => 'Vazio = padrão da filial ($value)';
+  static String defaultValue(String value) =>
+      'Vazio = padrão da filial ($value)';
   static const materialsUsed = 'Materiais utilizados';
   static const addMaterial = 'Adicionar material';
   static const noMaterialsInProcedure = 'Nenhum material adicionado.';
@@ -294,7 +296,8 @@ abstract final class Strings {
   static const materialActive = 'Material ativo';
   static const noMaterials = 'Nenhum material cadastrado.';
   static const searchMaterialsHint = 'Nome ou embalagem';
-  static String usedIn(int n) => n == 1 ? 'Usado em 1 procedimento' : 'Usado em $n procedimentos';
+  static String usedIn(int n) =>
+      n == 1 ? 'Usado em 1 procedimento' : 'Usado em $n procedimentos';
 
   // Pesquisa de preco de mercado
   static const lookupPrice = 'Buscar preço de mercado';
@@ -315,18 +318,21 @@ abstract final class Strings {
   static const hoursWeek = 'Horas por semana, por sala';
   static const weeksMonth = 'Semanas por mês';
   static const occupancy = 'Ocupação da agenda (%)';
-  static const occupancyHelp = 'Parte das horas abertas que realmente vira atendimento.';
+  static const occupancyHelp =
+      'Parte das horas abertas que realmente vira atendimento.';
   static const productiveHours = 'Horas produtivas por mês';
   static const structureHour = 'Custo da estrutura por hora';
   static const monthlyCost = 'Custo mensal da clínica';
   static const paramsProfessionalTitle = 'Profissional';
   static const professionalHour = 'Hora clínica do profissional (R\$/h)';
-  static const professionalHourHelp = 'Remuneração do dentista por hora de cadeira.';
+  static const professionalHourHelp =
+      'Remuneração do dentista por hora de cadeira.';
   static const paramsPercentTitle = 'Percentuais sobre o preço';
   static const cardRate = 'Taxa da máquina de cartão (%)';
   static const cardRateHelp = 'Média ponderada de débito, crédito e parcelado.';
   static const commissionRate = 'Comissão (%)';
-  static const commissionRateHelp = 'Padrão da filial; cada procedimento pode ter a sua.';
+  static const commissionRateHelp =
+      'Padrão da filial; cada procedimento pode ter a sua.';
   static const profitRate = 'Lucro desejado (%)';
   static const totalPercent = 'Total sobre o preço';
   static const paramsExpensesTitle = 'Custos da clínica';
@@ -489,14 +495,16 @@ abstract final class Strings {
     'PROCEDURE_STATUS_INVALID': 'Situação inválida.',
     'PROCEDURE_MATERIALS_INVALID': 'Lista de materiais inválida.',
     'PROCEDURE_MATERIAL_INVALID': 'Material inválido ou inativo: {Material}.',
-    'PROCEDURE_QUANTITY_INVALID': 'Informe a quantidade do material {Material}.',
+    'PROCEDURE_QUANTITY_INVALID':
+        'Informe a quantidade do material {Material}.',
     'PROCEDURE_REQUIRED': 'Procedimento não informado.',
     'PROCEDURE_NOT_FOUND': 'Procedimento não encontrado.',
     // Edge Function material-price-lookup
     'MATERIAL_LOOKUP_UNAUTHORIZED': 'Sessão inválida. Entre de novo.',
     'MATERIAL_LOOKUP_METHOD': 'Requisição inválida.',
     'MATERIAL_LOOKUP_BODY_INVALID': 'Dados inválidos.',
-    'MATERIAL_LOOKUP_QUERY_INVALID': 'Descreva o produto com pelo menos 3 letras.',
+    'MATERIAL_LOOKUP_QUERY_INVALID':
+        'Descreva o produto com pelo menos 3 letras.',
     'MATERIAL_LOOKUP_UNAVAILABLE':
         'A pesquisa de preços não está configurada neste ambiente. Informe o preço manualmente.',
     'MATERIAL_LOOKUP_FAILED': 'A pesquisa de preços falhou. {Detail}',

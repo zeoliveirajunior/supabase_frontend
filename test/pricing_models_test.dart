@@ -4,55 +4,78 @@ import 'package:odonto_app/features/pricing/domain/pricing_models.dart';
 
 void main() {
   group('PricingParamsData', () {
-    test('parse de pricing_param_get (padroes, despesas, taxas, permissao)', () {
-      final d = PricingParamsData.fromJson({
-        'params': {
-          'nr_company': 1,
-          'nr_branch': 1,
-          'qt_rooms': 2,
-          'qt_hours_week': '40.00',
-          'qt_weeks_month': 4,
-          'pc_occupancy': 50,
-          'vl_professional_hour': 60,
-          'pc_card': 4,
-          'pc_commission': 6,
-          'it_tax_regime': 2,
-          'pc_tax_pf': 27.5,
-          'pc_tax_pj': 10,
-          'pc_profit': 25,
-          'id_saved': false,
-        },
-        'summary': {
-          'vl_monthly_cost': 10000,
-          'qt_hours_month': 320,
-          'qt_productive_hours': 160,
-          'vl_structure_hour': 62.5,
-          'pc_fees': 5,
-          'pc_tax': 10,
-          'pc_total': 50,
-        },
-        'expenses': [
-          {'nr_expense': null, 'vc_name': 'Aluguel', 'it_type': 1, 'vl_amount': 0},
-          {'nr_expense': 2, 'vc_name': '13º', 'it_type': 3, 'vl_amount': 2400},
-        ],
-        'fees': [
-          {'nr_fee': null, 'vc_name': 'ISS', 'vc_hint': 'x', 'pc_rate': 5, 'id_active': false},
-        ],
-        'permission': {'id_read': true, 'id_create': true, 'id_update': false},
-      });
-      expect(d.params.idSaved, isFalse);
-      expect(d.params.qtHoursWeek, 40);
-      expect(d.params.pcTax, 10);
-      expect(d.params.pcTaxFor(TaxRegime.pf), 27.5);
-      expect(d.params.qtProductiveHours, 160);
-      expect(d.summary.vlStructureHour, 62.5);
-      expect(d.expenses.last.vlMonthly, 200);
-      expect(d.expenses.first.nrExpense, isNull);
-      expect(d.fees.single.idActive, isFalse);
-      expect(d.permission.idUpdate, isFalse);
-      expect(d.params.toJson()['it_tax_regime'], 2);
-      expect(d.params.copyWith(pcProfit: 30).toJson()['pc_profit'], 30);
-    });
+    test(
+      'parse de pricing_param_get (padroes, despesas, taxas, permissao)',
+      () {
+        final d = PricingParamsData.fromJson({
+          'params': {
+            'nr_company': 1,
+            'nr_branch': 1,
+            'qt_rooms': 2,
+            'qt_hours_week': '40.00',
+            'qt_weeks_month': 4,
+            'pc_occupancy': 50,
+            'vl_professional_hour': 60,
+            'pc_card': 4,
+            'pc_commission': 6,
+            'it_tax_regime': 2,
+            'pc_tax_pf': 27.5,
+            'pc_tax_pj': 10,
+            'pc_profit': 25,
+            'id_saved': false,
+          },
+          'summary': {
+            'vl_monthly_cost': 10000,
+            'qt_hours_month': 320,
+            'qt_productive_hours': 160,
+            'vl_structure_hour': 62.5,
+            'pc_fees': 5,
+            'pc_tax': 10,
+            'pc_total': 50,
+          },
+          'expenses': [
+            {
+              'nr_expense': null,
+              'vc_name': 'Aluguel',
+              'it_type': 1,
+              'vl_amount': 0,
+            },
+            {
+              'nr_expense': 2,
+              'vc_name': '13º',
+              'it_type': 3,
+              'vl_amount': 2400,
+            },
+          ],
+          'fees': [
+            {
+              'nr_fee': null,
+              'vc_name': 'ISS',
+              'vc_hint': 'x',
+              'pc_rate': 5,
+              'id_active': false,
+            },
+          ],
+          'permission': {
+            'id_read': true,
+            'id_create': true,
+            'id_update': false,
+          },
+        });
+        expect(d.params.idSaved, isFalse);
+        expect(d.params.qtHoursWeek, 40);
+        expect(d.params.pcTax, 10);
+        expect(d.params.pcTaxFor(TaxRegime.pf), 27.5);
+        expect(d.params.qtProductiveHours, 160);
+        expect(d.summary.vlStructureHour, 62.5);
+        expect(d.expenses.last.vlMonthly, 200);
+        expect(d.expenses.first.nrExpense, isNull);
+        expect(d.fees.single.idActive, isFalse);
+        expect(d.permission.idUpdate, isFalse);
+        expect(d.params.toJson()['it_tax_regime'], 2);
+        expect(d.params.copyWith(pcProfit: 30).toJson()['pc_profit'], 30);
+      },
+    );
   });
 
   group('Procedure', () {
@@ -176,7 +199,13 @@ void main() {
         'vc_query': 'luva',
         'vl_suggested': 38.5,
         'offers': [
-          {'vc_store': 'Loja A', 'vc_title': 'Luva M', 'vl_price': 35, 'vc_package': 'Caixa 100', 'vc_url': 'https://a'},
+          {
+            'vc_store': 'Loja A',
+            'vc_title': 'Luva M',
+            'vl_price': 35,
+            'vc_package': 'Caixa 100',
+            'vc_url': 'https://a',
+          },
           {'vc_store': 'Loja B', 'vc_title': 'Luva M', 'vl_price': 42},
         ],
       });

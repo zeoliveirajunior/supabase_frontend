@@ -525,10 +525,9 @@ class _MobileShell extends StatelessWidget {
       bottomNavigationBar: NavigationBar(
         selectedIndex: adminSelected
             ? mainItems.length
-            : mainItems.indexWhere((d) => d.section == section).clamp(
-                0,
-                mainItems.length - 1,
-              ),
+            : mainItems
+                  .indexWhere((d) => d.section == section)
+                  .clamp(0, mainItems.length - 1),
         onDestinationSelected: (i) {
           if (i < mainItems.length) {
             onGo(mainItems[i]);

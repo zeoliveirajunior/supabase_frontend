@@ -102,10 +102,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const ProfilesPage(),
       ),
       GoRoute(path: AppRoutes.logs, builder: (_, __) => const LogsPage()),
-      GoRoute(
-        path: AppRoutes.pricing,
-        builder: (_, __) => const PricingPage(),
-      ),
+      GoRoute(path: AppRoutes.pricing, builder: (_, __) => const PricingPage()),
     ],
   );
 });

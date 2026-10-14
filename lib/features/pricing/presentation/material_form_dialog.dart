@@ -32,7 +32,8 @@ class MaterialFormDialog extends ConsumerStatefulWidget {
   }) async {
     final saved = await showDialog<bool>(
       context: context,
-      builder: (_) => MaterialFormDialog(material: material, readOnly: readOnly),
+      builder: (_) =>
+          MaterialFormDialog(material: material, readOnly: readOnly),
     );
     return saved ?? false;
   }
@@ -46,7 +47,9 @@ class _MaterialFormDialogState extends ConsumerState<MaterialFormDialog> {
   late final _name = TextEditingController(text: _m?.vcName ?? '');
   late final _package = TextEditingController(text: _m?.vcPackage ?? '');
   late final _price = TextEditingController(
-    text: _m == null || !_m!.hasPrice ? '' : Numbers.toField(_m!.vlPackagePrice),
+    text: _m == null || !_m!.hasPrice
+        ? ''
+        : Numbers.toField(_m!.vlPackagePrice),
   );
   late final _yield = TextEditingController(
     text: Numbers.toField(_m?.qtYield ?? 1, decimals: 3),
@@ -142,7 +145,11 @@ class _MaterialFormDialogState extends ConsumerState<MaterialFormDialog> {
     Widget pair(Widget a, Widget b) => isMobile
         ? Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [a, const SizedBox(height: AppSpacing.md), b],
+            children: [
+              a,
+              const SizedBox(height: AppSpacing.md),
+              b,
+            ],
           )
         : Row(
             crossAxisAlignment: CrossAxisAlignment.start,

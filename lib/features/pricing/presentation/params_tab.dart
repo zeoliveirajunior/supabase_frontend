@@ -47,7 +47,9 @@ class _ExpenseRow {
 class _FeeRow {
   _FeeRow(this.id, String name, this.hint, double rate, this.active)
     : name = TextEditingController(text: name),
-      rate = TextEditingController(text: rate == 0 ? '' : Numbers.toField(rate));
+      rate = TextEditingController(
+        text: rate == 0 ? '' : Numbers.toField(rate),
+      );
 
   final int id;
   final TextEditingController name;
@@ -183,9 +185,8 @@ class _ParamsTabState extends ConsumerState<ParamsTab>
     row.dispose();
   });
 
-  void _addFee() => setState(
-    () => _fees = [..._fees, _FeeRow(_nextId++, '', null, 0, true)],
-  );
+  void _addFee() =>
+      setState(() => _fees = [..._fees, _FeeRow(_nextId++, '', null, 0, true)]);
 
   void _removeFee(_FeeRow row) => setState(() {
     _fees = _fees.where((f) => f != row).toList();
@@ -196,22 +197,24 @@ class _ParamsTabState extends ConsumerState<ParamsTab>
     if (_saving) return;
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (_expenses.any((e) => e.name.text.trim().isEmpty)) {
-      AppSnack.error(context, Strings.errorMessage('PRICING_EXPENSE_NAME_REQUIRED', const {}));
+      AppSnack.error(
+        context,
+        Strings.errorMessage('PRICING_EXPENSE_NAME_REQUIRED', const {}),
+      );
       return;
     }
     if (_fees.any((f) => f.name.text.trim().isEmpty)) {
-      AppSnack.error(context, Strings.errorMessage('PRICING_FEE_NAME_REQUIRED', const {}));
+      AppSnack.error(
+        context,
+        Strings.errorMessage('PRICING_FEE_NAME_REQUIRED', const {}),
+      );
       return;
     }
     setState(() => _saving = true);
     try {
       await ref
           .read(pricingParamsProvider.notifier)
-          .save(
-            params: _edited,
-            expenses: _editedExpenses,
-            fees: _editedFees,
-          );
+          .save(params: _edited, expenses: _editedExpenses, fees: _editedFees);
       if (mounted) AppSnack.success(context, Strings.paramsSaved);
     } catch (e) {
       if (mounted) AppSnack.error(context, describeError(e));
@@ -262,7 +265,11 @@ class _ParamsTabState extends ConsumerState<ParamsTab>
     );
     final pcFees = PricingCalculator.activeFees(_editedFees);
     final total =
-        edited.pcCard + edited.pcCommission + pcFees + edited.pcTax + edited.pcProfit;
+        edited.pcCard +
+        edited.pcCommission +
+        pcFees +
+        edited.pcTax +
+        edited.pcProfit;
     final valid = PricingCalculator.calculate(
       PricingInput(
         vlMaterial: 100,
@@ -295,7 +302,10 @@ class _ParamsTabState extends ConsumerState<ParamsTab>
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.tips_and_updates_outlined, color: AppColors.primaryDark),
+                    Icon(
+                      Icons.tips_and_updates_outlined,
+                      color: AppColors.primaryDark,
+                    ),
                     SizedBox(width: AppSpacing.sm),
                     Expanded(child: Text(Strings.paramsNotSaved)),
                   ],

@@ -321,19 +321,17 @@ class PricingParamsData {
     required this.permission,
   });
 
-  factory PricingParamsData.fromJson(Map<String, dynamic> json) =>
-      PricingParamsData(
-        params: PricingParams.fromJson(_map(json['params'])),
-        summary: PricingSummary.fromJson(_map(json['summary'])),
-        expenses: [
-          for (final e in _list(json['expenses']))
-            ClinicExpense.fromJson(_map(e)),
-        ],
-        fees: [
-          for (final f in _list(json['fees'])) PricingFee.fromJson(_map(f)),
-        ],
-        permission: PermissionFlags.fromJson(_map(json['permission'])),
-      );
+  factory PricingParamsData.fromJson(
+    Map<String, dynamic> json,
+  ) => PricingParamsData(
+    params: PricingParams.fromJson(_map(json['params'])),
+    summary: PricingSummary.fromJson(_map(json['summary'])),
+    expenses: [
+      for (final e in _list(json['expenses'])) ClinicExpense.fromJson(_map(e)),
+    ],
+    fees: [for (final f in _list(json['fees'])) PricingFee.fromJson(_map(f))],
+    permission: PermissionFlags.fromJson(_map(json['permission'])),
+  );
 
   final PricingParams params;
   final PricingSummary summary;
@@ -591,9 +589,7 @@ class ProcedureListData {
           for (final p in _list(json['procedures']))
             Procedure.fromJson(_map(p)),
         ],
-        categories: [
-          for (final c in _list(json['categories'])) c.toString(),
-        ],
+        categories: [for (final c in _list(json['categories'])) c.toString()],
         params: PricingParams.fromJson(_map(json['params'])),
         summary: PricingSummary.fromJson(_map(json['summary'])),
       );
