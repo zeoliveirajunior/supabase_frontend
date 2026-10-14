@@ -94,7 +94,7 @@ abstract final class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: const Size(0, 52),
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
           disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
@@ -110,7 +110,7 @@ abstract final class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: const Size(0, 52),
           foregroundColor: AppColors.primaryDark,
           side: const BorderSide(color: AppColors.line),
           textStyle: textTheme.titleMedium?.copyWith(
