@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/login_page.dart';
 import '../../features/dashboard/presentation/dashboard_page.dart';
 import '../../features/logs/presentation/logs_page.dart';
+import '../../features/pricing/presentation/pricing_page.dart';
 import '../../features/profiles/presentation/profiles_page.dart';
 import '../../features/session/application/session_controller.dart';
 import '../../features/session/domain/screen_codes.dart';
@@ -22,6 +23,7 @@ abstract final class AppRoutes {
   static const users = '/usuarios';
   static const profiles = '/perfis';
   static const logs = '/logs';
+  static const pricing = '/precificacao';
 
   /// Rotas que nao fazem sentido com a sessao pronta.
   static const transient = {splash, login, selectBranch, noCompany};
@@ -31,6 +33,7 @@ abstract final class AppRoutes {
     users: ScreenCodes.users,
     profiles: ScreenCodes.profiles,
     logs: ScreenCodes.logs,
+    pricing: ScreenCodes.pricing,
   };
 }
 
@@ -99,6 +102,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const ProfilesPage(),
       ),
       GoRoute(path: AppRoutes.logs, builder: (_, __) => const LogsPage()),
+      GoRoute(path: AppRoutes.pricing, builder: (_, __) => const PricingPage()),
     ],
   );
 });
