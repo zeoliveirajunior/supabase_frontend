@@ -1,7 +1,8 @@
 import '../../../l10n/strings.dart';
+import 'screen_codes.dart';
 
 /// Resposta de `ad.session_context`: usuario, empresas -> filiais -> perfis
-/// acessiveis AGORA, e vinculos sem acesso com o motivo.
+/// acessiveis AGORA (com as permissoes por tela), e vinculos sem acesso.
 class SessionContext {
   const SessionContext({
     required this.user,
@@ -131,6 +132,35 @@ class CompanyAccess {
   }
 }
 
+/// Permissao efetiva do usuario numa tela, nesta filial.
+class ScreenPermission {
+  const ScreenPermission({
+    required this.uuScreen,
+    required this.vcCode,
+    required this.vcName,
+    required this.idRead,
+    required this.idCreate,
+    required this.idUpdate,
+  });
+
+  factory ScreenPermission.fromJson(Map<String, dynamic> json) =>
+      ScreenPermission(
+        uuScreen: _str(json['uu_screen']) ?? '',
+        vcCode: _str(json['vc_code']) ?? '',
+        vcName: _str(json['vc_name']) ?? '',
+        idRead: json['id_read'] != false,
+        idCreate: json['id_create'] == true,
+        idUpdate: json['id_update'] == true,
+      );
+
+  final String uuScreen;
+  final String vcCode;
+  final String vcName;
+  final bool idRead;
+  final bool idCreate;
+  final bool idUpdate;
+}
+
 class BranchAccess {
   const BranchAccess({
     required this.nrBranch,
@@ -138,6 +168,7 @@ class BranchAccess {
     required this.idMain,
     required this.itLevel,
     required this.profiles,
+    this.permissions = const [],
     this.vcCnpj,
     this.vcTimezone,
   });
@@ -152,6 +183,10 @@ class BranchAccess {
     profiles: [
       for (final p in _list(json['profiles'])) ProfileAccess.fromJson(_map(p)),
     ],
+    permissions: [
+      for (final p in _list(json['permissions']))
+        ScreenPermission.fromJson(_map(p)),
+    ],
   );
 
   final int nrBranch;
@@ -164,7 +199,30 @@ class BranchAccess {
   final int itLevel;
   final List<ProfileAccess> profiles;
 
+  /// Telas que o usuario pode usar nesta filial (uniao dos perfis).
+  /// Administrador (nivel 100) recebe todas do backend; aqui tambem e
+  /// tratado como "tudo" por seguranca.
+  final List<ScreenPermission> permissions;
+
   bool get isAdmin => itLevel >= 100;
+
+  ScreenPermission? permission(String code) {
+    for (final p in permissions) {
+      if (p.vcCode == code) return p;
+    }
+    return null;
+  }
+
+  bool canRead(String code) =>
+      isAdmin ||
+      code == ScreenCodes.dashboard ||
+      (permission(code)?.idRead ?? false);
+
+  bool canCreate(String code) =>
+      isAdmin || (permission(code)?.idCreate ?? false);
+
+  bool canUpdate(String code) =>
+      isAdmin || (permission(code)?.idUpdate ?? false);
 }
 
 class ProfileAccess {
@@ -220,6 +278,10 @@ class BranchRef {
   int get nrBranch => branch.nrBranch;
   bool get isAdmin => branch.isAdmin;
   String get label => '${company.vcName} · ${branch.vcName}';
+
+  bool canRead(String code) => branch.canRead(code);
+  bool canCreate(String code) => branch.canCreate(code);
+  bool canUpdate(String code) => branch.canUpdate(code);
 
   @override
   bool operator ==(Object other) =>

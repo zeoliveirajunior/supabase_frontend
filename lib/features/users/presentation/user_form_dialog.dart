@@ -5,6 +5,7 @@ import '../../../core/errors/app_error.dart';
 import '../../../core/responsive/breakpoints.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/strings.dart';
+import '../../../shared/formatters/masks.dart';
 import '../../../shared/validators/validators.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_snack.dart';
@@ -15,10 +16,12 @@ import '../../../shared/widgets/searchable_dropdown.dart';
 import '../../profiles/application/profiles_controller.dart';
 import '../../profiles/domain/access_profile.dart';
 import '../application/users_controller.dart';
+import '../data/user_repository.dart';
 import '../domain/company_user.dart';
 
-/// Vincular usuario (user = null: e-mail de conta ja existente + acesso por
-/// filial) ou editar (situacao, motivo e acesso por filial). true = salvou.
+/// Novo usuario (user = null): cadastro completo com senha inicial, criado
+/// pela Edge Function user-create (se o e-mail ja tiver conta, so vincula).
+/// Edicao: situacao, motivo e acesso por filial. Devolve true quando salvou.
 class UserFormDialog extends ConsumerStatefulWidget {
   const UserFormDialog({super.key, this.user});
 
@@ -38,7 +41,13 @@ class UserFormDialog extends ConsumerStatefulWidget {
 
 class _UserFormDialogState extends ConsumerState<UserFormDialog> {
   final _formKey = GlobalKey<FormState>();
+  final _name = TextEditingController();
   final _email = TextEditingController();
+  final _cpf = TextEditingController();
+  final _phone = TextEditingController();
+  final _mobile = TextEditingController();
+  final _password = TextEditingController();
+  final _confirm = TextEditingController();
   late final TextEditingController _reason = TextEditingController(
     text: widget.user?.vcBlockReason ?? '',
   );
@@ -55,8 +64,18 @@ class _UserFormDialogState extends ConsumerState<UserFormDialog> {
 
   @override
   void dispose() {
-    _email.dispose();
-    _reason.dispose();
+    for (final c in [
+      _name,
+      _email,
+      _cpf,
+      _phone,
+      _mobile,
+      _password,
+      _confirm,
+      _reason,
+    ]) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -90,7 +109,17 @@ class _UserFormDialogState extends ConsumerState<UserFormDialog> {
           branches: _selected,
         );
       } else {
-        await controller.link(email: _email.text.trim(), branches: _selected);
+        await controller.create(
+          NewUser(
+            name: _name.text.trim(),
+            email: _email.text.trim(),
+            password: _password.text,
+            cpf: _cpf.text.isEmpty ? null : Masks.unmask(_cpf.text),
+            phone: _phone.text.isEmpty ? null : _phone.text,
+            mobile: _mobile.text.isEmpty ? null : _mobile.text,
+            branches: _selected,
+          ),
+        );
       }
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
@@ -117,7 +146,7 @@ class _UserFormDialogState extends ConsumerState<UserFormDialog> {
     return Dialog(
       insetPadding: EdgeInsets.all(isMobile ? AppSpacing.md : AppSpacing.xxl),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 560),
+        constraints: const BoxConstraints(maxWidth: 600),
         child: SingleChildScrollView(
           padding: EdgeInsets.all(isMobile ? AppSpacing.lg : AppSpacing.xl),
           child: Form(
@@ -128,7 +157,7 @@ class _UserFormDialogState extends ConsumerState<UserFormDialog> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  _isEdit ? Strings.editUser : Strings.linkUser,
+                  _isEdit ? Strings.editUser : Strings.newUser,
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
@@ -155,28 +184,18 @@ class _UserFormDialogState extends ConsumerState<UserFormDialog> {
                       prefixIcon: Icons.block_rounded,
                     ),
                   ],
-                ] else ...[
-                  AppTextField(
-                    label: Strings.email,
-                    hint: Strings.emailHint,
-                    controller: _email,
-                    autofocus: true,
+                ] else
+                  _NewUserFields(
+                    name: _name,
+                    email: _email,
+                    cpf: _cpf,
+                    phone: _phone,
+                    mobile: _mobile,
+                    password: _password,
+                    confirm: _confirm,
                     enabled: !_saving,
-                    prefixIcon: Icons.mail_outline_rounded,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: Validators.compose([
-                      Validators.required(),
-                      Validators.email(),
-                    ]),
+                    isMobile: isMobile,
                   ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    Strings.userEmailHelp,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.muted,
-                    ),
-                  ),
-                ],
                 const SizedBox(height: AppSpacing.lg),
                 Text(
                   Strings.userAccessTitle,
@@ -265,6 +284,138 @@ class _UserFormDialogState extends ConsumerState<UserFormDialog> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Campos do cadastro completo (nome, e-mail, CPF, telefones, senha inicial).
+class _NewUserFields extends StatelessWidget {
+  const _NewUserFields({
+    required this.name,
+    required this.email,
+    required this.cpf,
+    required this.phone,
+    required this.mobile,
+    required this.password,
+    required this.confirm,
+    required this.enabled,
+    required this.isMobile,
+  });
+
+  final TextEditingController name;
+  final TextEditingController email;
+  final TextEditingController cpf;
+  final TextEditingController phone;
+  final TextEditingController mobile;
+  final TextEditingController password;
+  final TextEditingController confirm;
+  final bool enabled;
+  final bool isMobile;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    Widget pair(Widget a, Widget b) => isMobile
+        ? Column(
+            children: [
+              a,
+              const SizedBox(height: AppSpacing.md),
+              b,
+            ],
+          )
+        : Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: a),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(child: b),
+            ],
+          );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AppTextField(
+          label: Strings.fullName,
+          controller: name,
+          autofocus: true,
+          enabled: enabled,
+          maxLength: 60,
+          prefixIcon: Icons.person_outline_rounded,
+          textCapitalization: TextCapitalization.words,
+          autofillHints: const [AutofillHints.name],
+          validator: Validators.required(),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        AppTextField(
+          label: Strings.email,
+          hint: Strings.emailHint,
+          controller: email,
+          enabled: enabled,
+          prefixIcon: Icons.mail_outline_rounded,
+          keyboardType: TextInputType.emailAddress,
+          validator: Validators.compose([
+            Validators.required(),
+            Validators.email(),
+          ]),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          Strings.newUserHelp,
+          style: theme.textTheme.bodySmall?.copyWith(color: AppColors.muted),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        pair(
+          AppTextField(
+            label: Strings.cpf,
+            controller: cpf,
+            enabled: enabled,
+            mask: MaskType.cpf,
+            prefixIcon: Icons.badge_outlined,
+            validator: Validators.cpf(),
+          ),
+          AppTextField(
+            label: Strings.mobile,
+            controller: mobile,
+            enabled: enabled,
+            mask: MaskType.phone,
+            prefixIcon: Icons.smartphone_rounded,
+            validator: Validators.phone(),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        AppTextField(
+          label: Strings.phone,
+          controller: phone,
+          enabled: enabled,
+          mask: MaskType.phone,
+          prefixIcon: Icons.phone_outlined,
+          validator: Validators.phone(),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        pair(
+          AppPasswordField(
+            label: Strings.initialPassword,
+            controller: password,
+            enabled: enabled,
+            autofillHints: const [AutofillHints.newPassword],
+            validator: Validators.compose([
+              Validators.required(),
+              Validators.minLength(8),
+            ]),
+          ),
+          AppPasswordField(
+            label: Strings.confirmPassword,
+            controller: confirm,
+            enabled: enabled,
+            autofillHints: const [AutofillHints.newPassword],
+            validator: (v) {
+              if (v == null || v.isEmpty) return Strings.required;
+              return v == password.text ? null : Strings.passwordsDiffer;
+            },
+          ),
+        ),
+      ],
     );
   }
 }

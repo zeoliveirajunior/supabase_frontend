@@ -35,6 +35,19 @@ class UsersController extends AutoDisposeAsyncNotifier<CompanyUserPage> {
     await future;
   }
 
+  int? get _nrBranch => ref.read(currentBranchNumberProvider);
+
+  /// Cadastra (cria a conta se preciso) e vincula. true = conta criada agora.
+  Future<bool> create(NewUser user) async {
+    final nrCompany = ref.read(currentCompanyProvider);
+    if (nrCompany == null) return false;
+    final created = await ref
+        .read(userRepositoryProvider)
+        .create(nrCompany: nrCompany, nrBranch: _nrBranch, user: user);
+    await refresh();
+    return created;
+  }
+
   Future<void> link({
     required String email,
     required List<BranchAssignment> branches,
@@ -43,7 +56,12 @@ class UsersController extends AutoDisposeAsyncNotifier<CompanyUserPage> {
     if (nrCompany == null) return;
     await ref
         .read(userRepositoryProvider)
-        .link(nrCompany: nrCompany, email: email, branches: branches);
+        .link(
+          nrCompany: nrCompany,
+          nrBranch: _nrBranch,
+          email: email,
+          branches: branches,
+        );
     await refresh();
   }
 
@@ -59,6 +77,7 @@ class UsersController extends AutoDisposeAsyncNotifier<CompanyUserPage> {
         .read(userRepositoryProvider)
         .update(
           nrCompany: nrCompany,
+          nrBranch: _nrBranch,
           nrUser: nrUser,
           itStatus: itStatus,
           blockReason: blockReason,
@@ -72,7 +91,7 @@ class UsersController extends AutoDisposeAsyncNotifier<CompanyUserPage> {
     if (nrCompany == null) return;
     await ref
         .read(userRepositoryProvider)
-        .unlink(nrCompany: nrCompany, nrUser: nrUser);
+        .unlink(nrCompany: nrCompany, nrBranch: _nrBranch, nrUser: nrUser);
     await refresh();
   }
 }

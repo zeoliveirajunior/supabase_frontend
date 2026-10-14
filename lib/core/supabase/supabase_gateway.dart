@@ -82,6 +82,54 @@ class SupabaseGateway {
     }
   }
 
+  /// Chama uma Edge Function (`supabase/functions/<name>`) com o JWT da sessao.
+  /// Erros 4xx chegam no mesmo formato do banco: `{"Message": "CHAVE", ...}`.
+  Future<Map<String, dynamic>> invokeFunction(
+    String name,
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      final response = await _client.functions.invoke(name, body: body);
+      final data = response.data;
+      if (data is Map) return data.cast<String, dynamic>();
+      return {'result': data};
+    } on FunctionException catch (e) {
+      throw _fromFunction(e);
+    } on AuthException catch (e) {
+      throw _fromAuth(e);
+    } on AppError {
+      rethrow;
+    } catch (e) {
+      throw AppError.unexpected(e);
+    }
+  }
+
+  static AppError _fromFunction(FunctionException e) {
+    final details = e.details;
+    Map<String, dynamic>? payload;
+    if (details is Map) {
+      payload = details.cast<String, dynamic>();
+    } else if (details is String) {
+      try {
+        final decoded = jsonDecode(details);
+        if (decoded is Map) payload = decoded.cast<String, dynamic>();
+      } catch (_) {
+        // corpo nao e JSON
+      }
+    }
+    if (payload != null && payload['Message'] is String) {
+      final params = payload['Parameters'];
+      return AppError(
+        key: payload['Message'] as String,
+        parameters: params is Map ? params.cast<String, dynamic>() : const {},
+      );
+    }
+    return AppError(
+      key: 'UNKNOWN',
+      fallback: e.reasonPhrase ?? details?.toString() ?? 'HTTP ${e.status}',
+    );
+  }
+
   static AppError _fromPostgrest(PostgrestException e) {
     try {
       final decoded = jsonDecode(e.message);
