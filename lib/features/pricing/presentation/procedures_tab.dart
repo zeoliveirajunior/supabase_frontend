@@ -20,11 +20,12 @@ import '../../session/application/permissions.dart';
 import '../../session/domain/screen_codes.dart';
 import '../application/pricing_controllers.dart';
 import '../domain/pricing_models.dart';
+import 'factor_edit_dialog.dart';
 import 'pricing_breakdown.dart';
 import 'procedure_form_dialog.dart';
 
-/// Aba Procedimentos: lista com o preco calculado no banco, filtros por
-/// texto/categoria, simulacao do regime (PF x PJ) e cadastro.
+/// Aba Procedimentos: fatores do preco (clicaveis), lista com o preco
+/// calculado no banco, filtros, simulacao do regime (PF x PJ) e cadastro.
 class ProceduresTab extends ConsumerStatefulWidget {
   const ProceduresTab({super.key});
 
@@ -69,12 +70,20 @@ class _ProceduresTabState extends ConsumerState<ProceduresTab>
     if (saved && mounted) AppSnack.success(context, Strings.savedSuccess);
   }
 
+  Future<void> _editFactor(PricingFactor factor) async {
+    final result = await FactorEditDialog.show(context, factor: factor);
+    if (result != null && mounted) {
+      AppSnack.success(context, Strings.paramsSaved);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
     final filters = ref.watch(procedureFiltersProvider);
     final async = ref.watch(proceduresProvider);
     final canCreate = ref.watch(canCreateProvider(ScreenCodes.pricing));
+    final canUpdate = ref.watch(canUpdateProvider(ScreenCodes.pricing));
     final data = async.valueOrNull;
     final isMobile = context.isMobile;
 
@@ -87,6 +96,15 @@ class _ProceduresTabState extends ConsumerState<ProceduresTab>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (data != null) ...[
+          _FactorTiles(
+            params: data.params,
+            summary: data.summary,
+            enabled: canUpdate || (canCreate && !data.params.idSaved),
+            onEdit: _editFactor,
+          ),
+          const SizedBox(height: AppSpacing.md),
+        ],
         Wrap(
           spacing: AppSpacing.sm,
           runSpacing: AppSpacing.sm,
@@ -143,10 +161,6 @@ class _ProceduresTabState extends ConsumerState<ProceduresTab>
               ),
           ],
         ),
-        if (data != null) ...[
-          const SizedBox(height: AppSpacing.md),
-          _SummaryStrip(params: data.params, summary: data.summary),
-        ],
         const SizedBox(height: AppSpacing.md),
         Expanded(
           child: async.when(
@@ -210,56 +224,179 @@ class _RegimeChips extends StatelessWidget {
   }
 }
 
-/// Resumo dos parametros em vigor na lista.
-class _SummaryStrip extends StatelessWidget {
-  const _SummaryStrip({required this.params, required this.summary});
+/// Fatores do preco em vigor: cada um e um botao que abre a edicao inline.
+class _FactorTiles extends StatelessWidget {
+  const _FactorTiles({
+    required this.params,
+    required this.summary,
+    required this.enabled,
+    required this.onEdit,
+  });
 
   final PricingParams params;
   final PricingSummary summary;
+  final bool enabled;
+  final ValueChanged<PricingFactor> onEdit;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final regime = summary.itTaxRegime ?? params.itTaxRegime;
-    return Wrap(
-      spacing: AppSpacing.sm,
-      runSpacing: AppSpacing.xs,
+    final manual = params.vlStructureHourManual != null;
+
+    Widget tile(PricingFactor f, String label, String value, {String? tag}) {
+      final body = Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: AppColors.line),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(f.icon, size: 20, color: AppColors.primaryDark),
+            const SizedBox(width: AppSpacing.sm),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppColors.muted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Row(
+                  children: [
+                    Text(
+                      value,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                      ),
+                    ),
+                    if (tag != null) ...[
+                      const SizedBox(width: AppSpacing.xs),
+                      AppTagChip(label: tag, highlighted: true),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+            if (enabled) ...[
+              const SizedBox(width: AppSpacing.sm),
+              const Icon(
+                Icons.edit_outlined,
+                size: 16,
+                color: AppColors.primary,
+              ),
+            ],
+          ],
+        ),
+      );
+      if (!enabled) return body;
+      return Tooltip(
+        message: Strings.editFactor,
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            hoverColor: AppColors.mint,
+            onTap: () => onEdit(f),
+            child: body,
+          ),
+        ),
+      );
+    }
+
+    final tiles = <Widget>[
+      tile(
+        PricingFactor.structure,
+        Strings.structureHour,
+        '${Numbers.money(summary.vlStructureHour)}${Strings.perHour}',
+        tag: manual ? Strings.structureManualTag : null,
+      ),
+      tile(
+        PricingFactor.professional,
+        Strings.professionalHour,
+        '${Numbers.money(params.vlProfessionalHour)}${Strings.perHour}',
+      ),
+      tile(
+        PricingFactor.card,
+        Strings.cardFee,
+        Numbers.percent(params.pcCard, decimals: 2),
+      ),
+      tile(
+        PricingFactor.commission,
+        Strings.commission,
+        Numbers.percent(params.pcCommission, decimals: 2),
+      ),
+      tile(
+        PricingFactor.fees,
+        Strings.extraFees,
+        Numbers.percent(summary.pcFees, decimals: 2),
+      ),
+      tile(
+        PricingFactor.tax,
+        '${Strings.incomeTax} · ${TaxRegime.label(regime)}',
+        Numbers.percent(summary.pcTax, decimals: 2),
+      ),
+      tile(
+        PricingFactor.profit,
+        Strings.profit,
+        Numbers.percent(params.pcProfit, decimals: 2),
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppTagChip(
-          icon: Icons.apartment_rounded,
-          label:
-              '${Strings.structureHour}: ${Numbers.money(summary.vlStructureHour)}${Strings.perHour}',
+        Row(
+          children: [
+            Text(
+              Strings.factorsTitle,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            if (enabled) ...[
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  Strings.factorsHint,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.muted,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ],
         ),
-        AppTagChip(
-          icon: Icons.person_outline_rounded,
-          label:
-              '${Strings.professionalCost}: ${Numbers.money(params.vlProfessionalHour)}${Strings.perHour}',
-        ),
-        AppTagChip(
-          icon: Icons.account_balance_outlined,
-          label:
-              '${TaxRegime.label(regime)} · ${Numbers.percent(summary.pcTax, decimals: 2)}',
-          highlighted: true,
-        ),
-        AppTagChip(
-          icon: Icons.credit_card_rounded,
-          label:
-              '${Strings.cardFee} ${Numbers.percent(params.pcCard, decimals: 2)}',
-        ),
-        AppTagChip(
-          icon: Icons.handshake_outlined,
-          label:
-              '${Strings.commission} ${Numbers.percent(params.pcCommission, decimals: 2)}',
-        ),
-        AppTagChip(
-          icon: Icons.percent_rounded,
-          label:
-              '${Strings.extraFees} ${Numbers.percent(summary.pcFees, decimals: 2)}',
-        ),
-        AppTagChip(
-          icon: Icons.trending_up_rounded,
-          label:
-              '${Strings.profit} ${Numbers.percent(params.pcProfit, decimals: 2)}',
-        ),
+        const SizedBox(height: AppSpacing.sm),
+        if (context.isMobile)
+          SizedBox(
+            height: 66,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: tiles.length,
+              separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
+              itemBuilder: (_, i) => tiles[i],
+            ),
+          )
+        else
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            children: tiles,
+          ),
       ],
     );
   }
@@ -324,6 +461,7 @@ class _ProcedureTable extends StatelessWidget {
                       ),
                   ],
                 ),
+                onTap: () => onTap(p),
               ),
               DataCell(Text(Numbers.minutes(p.qtMinutes))),
               DataCell(Text(Numbers.money(p.pricing?.vlDirectCost))),
@@ -336,6 +474,7 @@ class _ProcedureTable extends StatelessWidget {
                     color: AppColors.primaryDark,
                   ),
                 ),
+                onTap: () => onTap(p),
               ),
               DataCell(Text(Numbers.money(p.vlCurrentPrice))),
               DataCell(

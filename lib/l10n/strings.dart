@@ -360,6 +360,23 @@ abstract final class Strings {
   static const invalidNumber = 'Número inválido.';
   static const mustBePositive = 'Informe um valor maior que zero.';
 
+  // Edicao inline dos fatores do preco
+  static const factorsTitle = 'Fatores do preço';
+  static const factorsHint =
+      'Clique em um fator para alterar. Vale para todos os procedimentos da filial.';
+  static const editFactor = 'Alterar';
+  static const structureManual = 'Valor manual (R\$/h)';
+  static const structureManualHelp =
+      'Vazio = usar o cálculo pelas despesas. A planilha original digitava R\$ 30 sobre os R\$ 30,36 calculados.';
+  static const structureCalc = 'Calculado pelas despesas';
+  static const structureManualTag = 'manual';
+  static const branchDefault = 'Padrão da filial';
+  static const onlyThisProcedure = 'Só neste procedimento';
+  static const onlyThisProcedureHelp = 'Vazio = usa o padrão da filial.';
+  static const appliesToBranch = 'Vale para todos os procedimentos da filial.';
+  static const noFees = 'Nenhuma taxa cadastrada.';
+  static String activeFees(int n) => n == 1 ? '1 ativa' : '$n ativas';
+
   // Validacao de formularios
   static const required = 'Campo obrigatório.';
   static const invalidEmail = 'Informe um e-mail válido.';

@@ -4,9 +4,11 @@ import '../../../core/theme/app_theme.dart';
 import '../../../l10n/strings.dart';
 import '../../../shared/formatters/numbers.dart';
 import '../domain/pricing_models.dart';
+import 'factor_edit_dialog.dart';
 
 /// Composicao do preco de um procedimento: custos, percentuais e o preco
 /// sugerido. Usada na simulacao do formulario e no detalhe do procedimento.
+/// Com [onEditFactor], cada fator vira clicavel (edicao inline).
 class PricingBreakdown extends StatelessWidget {
   const PricingBreakdown({
     super.key,
@@ -17,6 +19,7 @@ class PricingBreakdown extends StatelessWidget {
     this.pcFees,
     this.pcTax,
     this.pcProfit,
+    this.onEditFactor,
   });
 
   final PricingResult result;
@@ -26,6 +29,7 @@ class PricingBreakdown extends StatelessWidget {
   final double? pcFees;
   final double? pcTax;
   final double? pcProfit;
+  final ValueChanged<PricingFactor>? onEditFactor;
 
   @override
   Widget build(BuildContext context) {
@@ -37,52 +41,97 @@ class PricingBreakdown extends StatelessWidget {
     final taxLabel = r.itTaxRegime == TaxRegime.pj
         ? '${Strings.incomeTax} (${Strings.taxRegimePjShort})'
         : '${Strings.incomeTax} (${Strings.taxRegimePfShort})';
+    VoidCallback? edit(PricingFactor f) =>
+        onEditFactor == null ? null : () => onEditFactor!(f);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _Line(Strings.materialsCost, Numbers.money(r.vlMaterial)),
         _Line(Strings.labCostShort, Numbers.money(r.vlLab)),
-        _Line(Strings.structureCost, Numbers.money(r.vlStructure)),
-        _Line(Strings.professionalCost, Numbers.money(r.vlProfessional)),
+        _Line(
+          Strings.structureCost,
+          Numbers.money(r.vlStructure),
+          onTap: edit(PricingFactor.structure),
+        ),
+        _Line(
+          Strings.professionalCost,
+          Numbers.money(r.vlProfessional),
+          onTap: edit(PricingFactor.professional),
+        ),
         _Line(Strings.directCost, Numbers.money(r.vlDirectCost), strong: true),
         const Divider(height: AppSpacing.lg),
-        if (!r.idValid)
+        if (!r.idValid) ...[
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               color: AppColors.danger.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
-            child: Row(
+            child: const Row(
               children: [
-                const Icon(
-                  Icons.error_outline_rounded,
-                  color: AppColors.danger,
-                ),
-                const SizedBox(width: AppSpacing.sm),
+                Icon(Icons.error_outline_rounded, color: AppColors.danger),
+                SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
                     Strings.priceInvalid,
-                    style: const TextStyle(color: AppColors.danger),
+                    style: TextStyle(color: AppColors.danger),
                   ),
                 ),
               ],
             ),
-          )
-        else ...[
-          _Line(_pct(Strings.cardFee, pcCard), Numbers.money(r.vlCard)),
+          ),
+          if (onEditFactor != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            _Line(
+              _pct(Strings.cardFee, pcCard),
+              '',
+              onTap: edit(PricingFactor.card),
+            ),
+            _Line(
+              _pct(Strings.commission, pcCommission),
+              '',
+              onTap: edit(PricingFactor.commission),
+            ),
+            _Line(
+              _pct(Strings.extraFees, pcFees),
+              '',
+              onTap: edit(PricingFactor.fees),
+            ),
+            _Line(_pct(taxLabel, pcTax), '', onTap: edit(PricingFactor.tax)),
+            _Line(
+              _pct(Strings.profit, pcProfit),
+              '',
+              onTap: edit(PricingFactor.profit),
+            ),
+          ],
+        ] else ...[
+          _Line(
+            _pct(Strings.cardFee, pcCard),
+            Numbers.money(r.vlCard),
+            onTap: edit(PricingFactor.card),
+          ),
           _Line(
             _pct(Strings.commission, pcCommission),
             Numbers.money(r.vlCommission),
+            onTap: edit(PricingFactor.commission),
           ),
-          _Line(_pct(Strings.extraFees, pcFees), Numbers.money(r.vlFees)),
-          _Line(_pct(taxLabel, pcTax), Numbers.money(r.vlTax)),
+          _Line(
+            _pct(Strings.extraFees, pcFees),
+            Numbers.money(r.vlFees),
+            onTap: edit(PricingFactor.fees),
+          ),
+          _Line(
+            _pct(taxLabel, pcTax),
+            Numbers.money(r.vlTax),
+            onTap: edit(PricingFactor.tax),
+          ),
           _Line(
             '${Strings.profit} (${Numbers.percent(r.pcProfitReal)})',
             Numbers.money(r.vlProfit),
             strong: true,
             color: AppColors.success,
+            onTap: edit(PricingFactor.profit),
           ),
           const Divider(height: AppSpacing.lg),
           _Line(
@@ -145,6 +194,7 @@ class _Line extends StatelessWidget {
     this.strong = false,
     this.color,
     this.help,
+    this.onTap,
   });
 
   final String label;
@@ -152,6 +202,7 @@ class _Line extends StatelessWidget {
   final bool strong;
   final Color? color;
   final String? help;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -160,8 +211,11 @@ class _Line extends StatelessWidget {
       fontWeight: strong ? FontWeight.w800 : FontWeight.w500,
       color: color ?? (strong ? AppColors.ink : AppColors.muted),
     );
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
+    final row = Padding(
+      padding: EdgeInsets.symmetric(
+        vertical: 3,
+        horizontal: onTap == null ? 0 : AppSpacing.xs,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -188,7 +242,21 @@ class _Line extends StatelessWidget {
               color: color ?? AppColors.ink,
             ),
           ),
+          if (onTap != null) ...[
+            const SizedBox(width: AppSpacing.xs),
+            const Icon(Icons.edit_outlined, size: 15, color: AppColors.primary),
+          ],
         ],
+      ),
+    );
+    if (onTap == null) return row;
+    return Tooltip(
+      message: Strings.editFactor,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        hoverColor: AppColors.mint,
+        onTap: onTap,
+        child: row,
       ),
     );
   }
