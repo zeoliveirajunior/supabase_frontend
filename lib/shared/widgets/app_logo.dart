@@ -5,7 +5,8 @@ import '../../core/theme/app_theme.dart';
 import '../../l10n/strings.dart';
 
 /// Logomarca Clinify: monograma "C" em ouro metalico sobre um selo grafite com
-/// filete dourado, e o nome em caixa alta, espacado, tambem em ouro.
+/// filete dourado e um diamante lapidado na boca do C; nome em caixa alta,
+/// espacado, tambem em ouro.
 ///
 /// [color] e mantido pelos chamadores antigos: branco indica fundo escuro, e
 /// ai o nome usa o ouro claro; em fundo claro usa o ouro escuro (contraste).

@@ -26,5 +26,14 @@
   <circle cx="32" cy="32" r="27" fill="url(#cf_glow)"/>
   <path d="M44.02 44.02A17 17 0 1 1 44.02 19.98" stroke="url(#cf_gold)" stroke-width="9"/>
   <path d="M12.27 24.82A21 21 0 0 1 39.18 12.27" stroke="#FFFFFF" stroke-opacity="0.32" stroke-width="0.9" stroke-linecap="round"/>
-  <path d="M46 26.5 51.5 32 46 37.5 40.5 32Z" fill="url(#cf_gold)"/>
+  <g id="gem">
+    <path d="M43 26.5H49L51.5 30.5H40.5Z" fill="url(#cf_gold)"/>
+    <path d="M40.5 30.5H51.5L46 38.5Z" fill="url(#cf_gold)"/>
+    <path d="M40.5 30.5L43 26.5L44.2 30.5Z" fill="#FFFFFF" fill-opacity="0.22"/>
+    <path d="M43 26.5H49L47.8 30.5H44.2Z" fill="#FFFFFF" fill-opacity="0.48"/>
+    <path d="M49 26.5L51.5 30.5H47.8Z" fill="#000000" fill-opacity="0.08"/>
+    <path d="M40.5 30.5H44.2L46 38.5Z" fill="#FFFFFF" fill-opacity="0.12"/>
+    <path d="M44.2 30.5H47.8L46 38.5Z" fill="#000000" fill-opacity="0.10"/>
+    <path d="M47.8 30.5H51.5L46 38.5Z" fill="#000000" fill-opacity="0.30"/>
+  </g>
 </svg>
