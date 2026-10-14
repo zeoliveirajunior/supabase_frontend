@@ -180,6 +180,180 @@ abstract final class Strings {
   static const searchEventsHint = 'Resumo, registro ou chave';
   static const noEvents = 'Nenhuma atividade no período.';
 
+  // Precificacao
+  static const pricing = 'Precificação';
+  static const pricingTitle = 'Precificação de procedimentos';
+  static const pricingSubtitle =
+      'Custos da clínica, materiais, tempo e margens: o preço certo de cada procedimento.';
+  static const tabProcedures = 'Procedimentos';
+  static const tabMaterials = 'Materiais';
+  static const tabParams = 'Parâmetros';
+  static const readOnlyHint = 'Você pode consultar, mas não alterar.';
+
+  // Procedimentos
+  static const newProcedure = 'Novo procedimento';
+  static const editProcedure = 'Editar procedimento';
+  static const viewProcedure = 'Procedimento';
+  static const procedureCode = 'Código';
+  static const procedureName = 'Procedimento';
+  static const category = 'Categoria';
+  static const categoryHint = 'Ex.: Clínica Geral, Ortodontia, Implante';
+  static const allCategories = 'Todas as categorias';
+  static const minutes = 'Tempo (min)';
+  static const minutesHelp =
+      'Tempo de cadeira. Define o custo da estrutura e a hora do profissional.';
+  static const labCost = 'Laboratório / terceiros (R\$)';
+  static const materialOther = 'Outros materiais (R\$)';
+  static const materialOtherHelp = 'Materiais sem cadastro, valor informado direto.';
+  static const currentPrice = 'Valor cobrado hoje (R\$)';
+  static const currentPriceHelp = 'Só para comparar com o preço sugerido.';
+  static const commissionOverride = 'Comissão própria (%)';
+  static const profitOverride = 'Lucro próprio (%)';
+  static String defaultValue(String value) => 'Vazio = padrão da filial ($value)';
+  static const materialsUsed = 'Materiais utilizados';
+  static const addMaterial = 'Adicionar material';
+  static const noMaterialsInProcedure = 'Nenhum material adicionado.';
+  static const quantityUsed = 'Quantidade';
+  static const unitCost = 'Custo unitário';
+  static const lineCost = 'Custo';
+  static const procedureActive = 'Procedimento ativo';
+  static const noProcedures = 'Nenhum procedimento cadastrado.';
+  static const searchProceduresHint = 'Código, nome ou categoria';
+  static const time = 'Tempo';
+  static const current = 'Atual';
+  static const difference = 'Diferença';
+
+  // Composicao do preco
+  static const breakdownTitle = 'Composição do preço';
+  static const simulation = 'Simulação';
+  static const suggestedPrice = 'Preço sugerido';
+  static const minPrice = 'Preço mínimo';
+  static const minPriceHelp = 'Cobre todos os custos e taxas, com lucro zero.';
+  static const directCost = 'Custo direto';
+  static const materialsCost = 'Materiais';
+  static const labCostShort = 'Laboratório';
+  static const structureCost = 'Estrutura da clínica';
+  static const professionalCost = 'Hora clínica do profissional';
+  static const cardFee = 'Taxa de cartão';
+  static const commission = 'Comissão';
+  static const extraFees = 'Taxas adicionais';
+  static const incomeTax = 'Imposto de renda';
+  static const profit = 'Lucro';
+  static const profitReal = 'Lucro real';
+  static const diffToCurrent = 'Em relação ao valor cobrado hoje';
+  static const priceInvalid =
+      'Os percentuais somam 100% ou mais: não existe preço possível. Ajuste nos parâmetros.';
+
+  // Regime de IR
+  static const taxRegime = 'Regime do imposto de renda';
+  static const taxRegimePf = 'Pessoa física';
+  static const taxRegimePj = 'Pessoa jurídica';
+  static const taxRegimePfShort = 'PF';
+  static const taxRegimePjShort = 'PJ';
+  static const taxRegimePfHelp =
+      'IR incide sobre o lucro do procedimento (carnê-leão): receita menos custos e taxas.';
+  static const taxRegimePjHelp =
+      'Tributos incidem sobre o faturamento (Simples Nacional ou Lucro Presumido).';
+  static const taxPf = 'IR pessoa física (%)';
+  static const taxPfHelp = 'Alíquota efetiva da sua faixa (teto 27,5%).';
+  static const taxPj = 'Tributos pessoa jurídica (%)';
+  static const taxPjHelp =
+      'Alíquota efetiva do regime: Simples 6% a 15,5%; Presumido 11,33% + ISS.';
+  static const simulateRegime = 'Simular regime';
+  static const regimeFromParams = 'Regime da filial';
+
+  // Alertas
+  static const alertsTitle = 'Atenção';
+  static const alertNoTime = 'Sem tempo';
+  static const alertNoMaterial = 'Sem materiais';
+  static const alertMaterialNoPrice = 'Material sem preço';
+  static const alertPercentTooHigh = 'Percentuais ≥ 100%';
+
+  // Materiais
+  static const newMaterial = 'Novo material';
+  static const editMaterial = 'Editar material';
+  static const materialName = 'Material';
+  static const package = 'Embalagem';
+  static const packageHint = 'Ex.: Caixa 100, Seringa 4 g';
+  static const packagePrice = 'Preço da embalagem (R\$)';
+  static const yieldLabel = 'Rendimento (unidades de uso)';
+  static const yieldShort = 'Rendimento';
+  static const packagePriceShort = 'Preço embalagem';
+  static const yieldHelp =
+      'Quantas vezes a embalagem é usada: caixa com 100 luvas = 100; seringa de 4 g a 0,1 g por uso = 40.';
+  static const unit = 'Unidade de uso';
+  static const unitHint = 'Ex.: unidade, par, g, ml, aplicação';
+  static const waste = 'Perda (%)';
+  static const wasteHelp = 'Desperdício médio; reduz o rendimento.';
+  static const unitCostPreview = 'Custo por unidade de uso';
+  static const priceSource = 'Origem do preço';
+  static const priceSourceManual = 'Manual';
+  static const priceSourceMarket = 'Pesquisa de mercado';
+  static const priceSourceText = 'Loja / URL de origem';
+  static const priceUpdated = 'Preço atualizado em';
+  static const materialActive = 'Material ativo';
+  static const noMaterials = 'Nenhum material cadastrado.';
+  static const searchMaterialsHint = 'Nome ou embalagem';
+  static String usedIn(int n) => n == 1 ? 'Usado em 1 procedimento' : 'Usado em $n procedimentos';
+
+  // Pesquisa de preco de mercado
+  static const lookupPrice = 'Buscar preço de mercado';
+  static const lookupTitle = 'Preços de mercado';
+  static const lookupHelp =
+      'Pesquisa em lojas brasileiras de produtos odontológicos. Escolha uma oferta para preencher o preço.';
+  static const lookupQuery = 'Produto a pesquisar';
+  static const lookupQueryHint = 'Nome do material e embalagem';
+  static const lookupSearching = 'Pesquisando na web...';
+  static const lookupEmpty =
+      'Nenhuma oferta encontrada. Descreva melhor o produto (marca, embalagem).';
+  static const lookupSuggested = 'Mediana das ofertas';
+  static const useOffer = 'Usar';
+
+  // Parametros
+  static const paramsStructureTitle = 'Estrutura da clínica';
+  static const rooms = 'Salas (cadeiras)';
+  static const hoursWeek = 'Horas por semana, por sala';
+  static const weeksMonth = 'Semanas por mês';
+  static const occupancy = 'Ocupação da agenda (%)';
+  static const occupancyHelp = 'Parte das horas abertas que realmente vira atendimento.';
+  static const productiveHours = 'Horas produtivas por mês';
+  static const structureHour = 'Custo da estrutura por hora';
+  static const monthlyCost = 'Custo mensal da clínica';
+  static const paramsProfessionalTitle = 'Profissional';
+  static const professionalHour = 'Hora clínica do profissional (R\$/h)';
+  static const professionalHourHelp = 'Remuneração do dentista por hora de cadeira.';
+  static const paramsPercentTitle = 'Percentuais sobre o preço';
+  static const cardRate = 'Taxa da máquina de cartão (%)';
+  static const cardRateHelp = 'Média ponderada de débito, crédito e parcelado.';
+  static const commissionRate = 'Comissão (%)';
+  static const commissionRateHelp = 'Padrão da filial; cada procedimento pode ter a sua.';
+  static const profitRate = 'Lucro desejado (%)';
+  static const totalPercent = 'Total sobre o preço';
+  static const paramsExpensesTitle = 'Custos da clínica';
+  static const expensesHelp =
+      'Despesas que formam o custo mensal. Eventuais anuais entram divididas por 12.';
+  static const expenseFixed = 'Fixas mensais';
+  static const expenseVariable = 'Variáveis mensais';
+  static const expenseAnnual = 'Eventuais anuais';
+  static const expenseMarketing = 'Publicidade mensal';
+  static const expenseName = 'Despesa';
+  static const expenseAmount = 'Valor (R\$)';
+  static const addExpense = 'Adicionar';
+  static const paramsFeesTitle = 'Taxas adicionais';
+  static const feesHelp =
+      'Ligue as que fazem sentido para a clínica. Entram como percentual sobre o preço.';
+  static const feeName = 'Taxa';
+  static const feeRate = 'Percentual';
+  static const addFee = 'Adicionar taxa';
+  static const paramsNotSaved =
+      'Parâmetros ainda não salvos: estes são valores sugeridos. Ajuste e salve.';
+  static const paramsSaved = 'Parâmetros salvos.';
+  static const subtotal = 'Subtotal';
+  static const perMonth = '/mês';
+  static const perHour = '/h';
+  static const invalidNumber = 'Número inválido.';
+  static const mustBePositive = 'Informe um valor maior que zero.';
+
   // Validacao de formularios
   static const required = 'Campo obrigatório.';
   static const invalidEmail = 'Informe um e-mail válido.';
@@ -279,6 +453,54 @@ abstract final class Strings {
     'USER_CREATE_UNAUTHORIZED': 'Sessão inválida. Entre de novo.',
     'USER_CREATE_METHOD': 'Requisição inválida.',
     'USER_CREATE_BODY_INVALID': 'Dados inválidos.',
+    // Backend: precificacao (schema od)
+    'PRICING_BRANCH_REQUIRED': 'Filial não informada.',
+    'PRICING_FORBIDDEN': 'Você não tem acesso à precificação desta filial.',
+    'PRICING_PARAM_INVALID': 'Valor inválido no campo {Field}.',
+    'PRICING_EXPENSES_INVALID': 'Lista de despesas inválida.',
+    'PRICING_EXPENSE_NAME_REQUIRED': 'Informe o nome de todas as despesas.',
+    'PRICING_EXPENSE_TYPE_INVALID': 'Tipo inválido na despesa {Expense}.',
+    'PRICING_EXPENSE_AMOUNT_INVALID': 'Valor inválido na despesa {Expense}.',
+    'PRICING_FEES_INVALID': 'Lista de taxas inválida.',
+    'PRICING_FEE_NAME_REQUIRED': 'Informe o nome de todas as taxas.',
+    'PRICING_FEE_RATE_INVALID': 'Percentual inválido na taxa {Fee}.',
+    'PRICING_PERCENT_TOO_HIGH':
+        'Os percentuais sobre o preço somam {Total}%: não existe preço possível. Reduza lucro, taxas ou impostos.',
+    'PROCEDURE_LIST_REGIME_INVALID': 'Regime de imposto inválido.',
+    'MATERIAL_ACTION_INVALID': 'Ação inválida.',
+    'MATERIAL_FORBIDDEN': 'Você não tem permissão para alterar materiais.',
+    'MATERIAL_NAME_REQUIRED': 'Informe o nome do material.',
+    'MATERIAL_NAME_IN_USE': 'Já existe um material chamado {Name}.',
+    'MATERIAL_PRICE_INVALID': 'Preço inválido.',
+    'MATERIAL_YIELD_INVALID': 'O rendimento deve ser maior que zero.',
+    'MATERIAL_WASTE_INVALID': 'A perda deve ficar entre 0% e 99%.',
+    'MATERIAL_SOURCE_INVALID': 'Origem do preço inválida.',
+    'MATERIAL_STATUS_INVALID': 'Situação inválida.',
+    'MATERIAL_REQUIRED': 'Material não informado.',
+    'MATERIAL_NOT_FOUND': 'Material não encontrado.',
+    'PROCEDURE_ACTION_INVALID': 'Ação inválida.',
+    'PROCEDURE_FORBIDDEN': 'Você não tem permissão para alterar procedimentos.',
+    'PROCEDURE_NAME_REQUIRED': 'Informe o nome do procedimento.',
+    'PROCEDURE_NAME_IN_USE': 'Já existe um procedimento chamado {Name}.',
+    'PROCEDURE_CODE_IN_USE': 'O código {Code} já está em uso.',
+    'PROCEDURE_MINUTES_INVALID': 'Tempo inválido.',
+    'PROCEDURE_VALUE_INVALID': 'Valor inválido no campo {Field}.',
+    'PROCEDURE_PERCENT_INVALID': 'Percentual inválido no campo {Field}.',
+    'PROCEDURE_STATUS_INVALID': 'Situação inválida.',
+    'PROCEDURE_MATERIALS_INVALID': 'Lista de materiais inválida.',
+    'PROCEDURE_MATERIAL_INVALID': 'Material inválido ou inativo: {Material}.',
+    'PROCEDURE_QUANTITY_INVALID': 'Informe a quantidade do material {Material}.',
+    'PROCEDURE_REQUIRED': 'Procedimento não informado.',
+    'PROCEDURE_NOT_FOUND': 'Procedimento não encontrado.',
+    // Edge Function material-price-lookup
+    'MATERIAL_LOOKUP_UNAUTHORIZED': 'Sessão inválida. Entre de novo.',
+    'MATERIAL_LOOKUP_METHOD': 'Requisição inválida.',
+    'MATERIAL_LOOKUP_BODY_INVALID': 'Dados inválidos.',
+    'MATERIAL_LOOKUP_QUERY_INVALID': 'Descreva o produto com pelo menos 3 letras.',
+    'MATERIAL_LOOKUP_UNAVAILABLE':
+        'A pesquisa de preços não está configurada neste ambiente. Informe o preço manualmente.',
+    'MATERIAL_LOOKUP_FAILED': 'A pesquisa de preços falhou. {Detail}',
+    'MATERIAL_LOOKUP_BACKEND_ERROR': 'Falha na pesquisa. {Detail}',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',

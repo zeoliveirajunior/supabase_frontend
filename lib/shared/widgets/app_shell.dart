@@ -10,7 +10,7 @@ import '../../features/session/presentation/branch_selection_dialog.dart';
 import '../../l10n/strings.dart';
 import 'app_logo.dart';
 
-enum AppSection { dashboard, users, profiles, logs }
+enum AppSection { dashboard, pricing, users, profiles, logs }
 
 class _Destination {
   const _Destination({
@@ -38,6 +38,18 @@ const _dashboard = _Destination(
   label: Strings.dashboard,
   route: '/dashboard',
 );
+
+/// Telas de negocio: ficam no menu principal, abaixo do Dashboard.
+const _pricing = _Destination(
+  section: AppSection.pricing,
+  code: ScreenCodes.pricing,
+  icon: Icons.calculate_outlined,
+  selectedIcon: Icons.calculate_rounded,
+  label: Strings.pricing,
+  route: '/precificacao',
+);
+
+const _mainItems = [_dashboard, _pricing];
 
 /// Itens do quadrado de administracao (ao lado do Dashboard).
 const _adminItems = [
@@ -90,12 +102,12 @@ class AppShell extends ConsumerStatefulWidget {
 }
 
 class _AppShellState extends ConsumerState<AppShell> {
-  late bool _adminOpen = widget.section != AppSection.dashboard;
+  late bool _adminOpen = _adminItems.any((d) => d.section == widget.section);
 
   String get _pageTitle =>
       widget.title ??
       [
-        _dashboard,
+        ..._mainItems,
         ..._adminItems,
       ].firstWhere((d) => d.section == widget.section).label;
 
@@ -112,12 +124,19 @@ class _AppShellState extends ConsumerState<AppShell> {
       for (final d in _adminItems)
         if (selected?.canRead(d.code) ?? false) d,
     ];
+    final visibleMain = [
+      for (final d in _mainItems)
+        if (d.section == AppSection.dashboard ||
+            (selected?.canRead(d.code) ?? false))
+          d,
+    ];
     final title = _pageTitle;
 
     return ResponsiveBuilder(
       mobile: (_) => _MobileShell(
         title: title,
         section: widget.section,
+        mainItems: visibleMain,
         adminItems: visibleAdmin,
         onGo: (d) => _go(context, d),
         child: widget.child,
@@ -127,6 +146,7 @@ class _AppShellState extends ConsumerState<AppShell> {
           children: [
             _Sidebar(
               section: widget.section,
+              mainItems: visibleMain,
               adminItems: visibleAdmin,
               adminOpen: _adminOpen,
               onToggleAdmin: () => setState(() => _adminOpen = !_adminOpen),
@@ -153,6 +173,7 @@ class _AppShellState extends ConsumerState<AppShell> {
 class _Sidebar extends StatelessWidget {
   const _Sidebar({
     required this.section,
+    required this.mainItems,
     required this.adminItems,
     required this.adminOpen,
     required this.onToggleAdmin,
@@ -160,6 +181,7 @@ class _Sidebar extends StatelessWidget {
   });
 
   final AppSection section;
+  final List<_Destination> mainItems;
   final List<_Destination> adminItems;
   final bool adminOpen;
   final VoidCallback onToggleAdmin;
@@ -208,6 +230,21 @@ class _Sidebar extends StatelessWidget {
               ],
             ),
           ),
+          for (final d in mainItems.where((d) => d != _dashboard))
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.sm,
+                AppSpacing.xs,
+                AppSpacing.sm,
+                0,
+              ),
+              child: _NavTile(
+                destination: d,
+                selected: d.section == section,
+                wide: wide,
+                onTap: () => onGo(d),
+              ),
+            ),
           AnimatedSize(
             duration: const Duration(milliseconds: 180),
             curve: Curves.easeOut,
@@ -393,6 +430,7 @@ class _MobileShell extends StatelessWidget {
   const _MobileShell({
     required this.title,
     required this.section,
+    required this.mainItems,
     required this.adminItems,
     required this.onGo,
     required this.child,
@@ -400,6 +438,7 @@ class _MobileShell extends StatelessWidget {
 
   final String title;
   final AppSection section;
+  final List<_Destination> mainItems;
   final List<_Destination> adminItems;
   final ValueChanged<_Destination> onGo;
   final Widget child;
@@ -484,20 +523,26 @@ class _MobileShell extends StatelessWidget {
       ),
       body: child,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: adminSelected ? 1 : 0,
+        selectedIndex: adminSelected
+            ? mainItems.length
+            : mainItems.indexWhere((d) => d.section == section).clamp(
+                0,
+                mainItems.length - 1,
+              ),
         onDestinationSelected: (i) {
-          if (i == 0) {
-            onGo(_dashboard);
+          if (i < mainItems.length) {
+            onGo(mainItems[i]);
           } else {
             _openAdminSheet(context);
           }
         },
         destinations: [
-          NavigationDestination(
-            icon: Icon(_dashboard.icon),
-            selectedIcon: Icon(_dashboard.selectedIcon),
-            label: _dashboard.label,
-          ),
+          for (final d in mainItems)
+            NavigationDestination(
+              icon: Icon(d.icon),
+              selectedIcon: Icon(d.selectedIcon),
+              label: d.label,
+            ),
           if (adminItems.isNotEmpty)
             const NavigationDestination(
               icon: Icon(Icons.grid_view_outlined),

@@ -59,10 +59,18 @@ class SupabaseGateway {
   Future<Map<String, dynamic>> rpc(
     String function, [
     Map<String, dynamic> json = const {},
+  ]) => rpcIn('ad', function, json);
+
+  /// Chama `<schema>.<function>(p_json)` (`ad` = administrativo, `od` = negocio
+  /// da clinica). Mesmo contrato de [rpc].
+  Future<Map<String, dynamic>> rpcIn(
+    String schema,
+    String function, [
+    Map<String, dynamic> json = const {},
   ]) async {
     try {
       final result = await _client
-          .schema('ad')
+          .schema(schema)
           .rpc(
             function,
             params: {

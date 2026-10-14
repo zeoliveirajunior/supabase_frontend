@@ -5,4 +5,5 @@ abstract final class ScreenCodes {
   static const users = 'USERS';
   static const profiles = 'PROFILES';
   static const logs = 'LOGS';
+  static const pricing = 'PRICING';
 }
