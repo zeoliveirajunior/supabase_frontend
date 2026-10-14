@@ -12,6 +12,29 @@ import '../../session/domain/screen_codes.dart';
 import 'access_log_tab.dart';
 import 'event_log_tab.dart';
 
+/// Aba com icone e texto na mesma linha (altura 44).
+class _CompactTab extends StatelessWidget {
+  const _CompactTab({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 44,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18),
+          const SizedBox(width: AppSpacing.sm),
+          Text(label),
+        ],
+      ),
+    );
+  }
+}
+
 /// Logs: aba Atividades (o que aconteceu no sistema, por tela e por tipo) e
 /// aba Acessos (logins). Administrador ve a empresa; usuario comum, o proprio.
 class LogsPage extends ConsumerWidget {
@@ -65,17 +88,21 @@ class LogsPage extends ConsumerWidget {
                     indicatorSize: TabBarIndicatorSize.tab,
                     labelColor: AppColors.primaryDark,
                     unselectedLabelColor: AppColors.muted,
-                    labelStyle: const TextStyle(fontWeight: FontWeight.w800),
+                    labelStyle: Theme.of(context).textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w800),
+                    unselectedLabelStyle: Theme.of(context).textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                    labelPadding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                    ),
                     tabs: const [
-                      Tab(
-                        icon: Icon(Icons.history_rounded, size: 18),
-                        text: Strings.activitiesTab,
-                        iconMargin: EdgeInsets.only(bottom: 2),
+                      _CompactTab(
+                        icon: Icons.history_rounded,
+                        label: Strings.activitiesTab,
                       ),
-                      Tab(
-                        icon: Icon(Icons.login_rounded, size: 18),
-                        text: Strings.accessTab,
-                        iconMargin: EdgeInsets.only(bottom: 2),
+                      _CompactTab(
+                        icon: Icons.login_rounded,
+                        label: Strings.accessTab,
                       ),
                     ],
                   ),

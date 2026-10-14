@@ -110,6 +110,15 @@ class _ProfilesPageState extends ConsumerState<ProfilesPage> {
   }
 }
 
+String _permissionLabel(ProfileScreen s) {
+  final perms = [
+    Strings.permRead.toLowerCase(),
+    if (s.idCreate) Strings.permCreate.toLowerCase(),
+    if (s.idUpdate) Strings.permUpdate.toLowerCase(),
+  ];
+  return '${s.vcName} · ${perms.join(', ')}';
+}
+
 String _screensLabel(AccessProfile p) {
   if (p.isAdmin) return Strings.allScreens;
   if (p.screens.isEmpty) return Strings.noScreens;
@@ -175,11 +184,7 @@ class _ProfileTable extends StatelessWidget {
                       : [
                           for (final s in p.screens)
                             AppTagChip(
-                              label: [
-                                s.vcName,
-                                if (s.idCreate) 'C',
-                                if (s.idUpdate) 'A',
-                              ].join(' '),
+                              label: _permissionLabel(s),
                               icon: Icons.visibility_outlined,
                             ),
                         ],
