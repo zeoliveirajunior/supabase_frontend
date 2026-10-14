@@ -3,7 +3,7 @@
 /// As chaves de erro vem de `ad.fn_message` (ver dicionario do repositorio
 /// supabase, aba Functions > errors). Chave sem traducao cai em UNKNOWN.
 abstract final class Strings {
-  static const appName = 'Odonto';
+  static const appName = 'Clinify';
   static const tagline = 'Gestão da sua clínica, do agendamento ao prontuário.';
 
   // Login
@@ -361,6 +361,13 @@ abstract final class Strings {
   static const mustBePositive = 'Informe um valor maior que zero.';
 
   // Edicao inline dos fatores do preco
+  static const exportExcel = 'Exportar Excel';
+  static const exportDone = 'Planilha gerada.';
+  static const exportSheetProcedures = 'Procedimentos';
+  static const exportSheetMaterials = 'Materiais por procedimento';
+  static const exportSheetParams = 'Parâmetros';
+  static const exportGeneratedAt = 'Gerado em';
+  static const alerts = 'Alertas';
   static const factorsTitle = 'Fatores do preço';
   static const factorsHint =
       'Clique em um fator para alterar. Vale para todos os procedimentos da filial.';

@@ -8,6 +8,7 @@ import '../../../core/responsive/breakpoints.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/strings.dart';
 import '../../../shared/formatters/numbers.dart';
+import '../../../shared/files/file_download.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_empty_state.dart';
 import '../../../shared/widgets/app_snack.dart';
@@ -19,6 +20,7 @@ import '../../../shared/widgets/searchable_dropdown.dart';
 import '../../session/application/permissions.dart';
 import '../../session/domain/screen_codes.dart';
 import '../application/pricing_controllers.dart';
+import '../data/pricing_export.dart';
 import '../domain/pricing_models.dart';
 import 'factor_edit_dialog.dart';
 import 'pricing_breakdown.dart';
@@ -68,6 +70,20 @@ class _ProceduresTabState extends ConsumerState<ProceduresTab>
       readOnly: p != null && !canUpdate,
     );
     if (saved && mounted) AppSnack.success(context, Strings.savedSuccess);
+  }
+
+  Future<void> _export(ProcedureListData data) async {
+    try {
+      final now = DateTime.now();
+      final bytes = PricingExport.buildXlsx(data, now: now);
+      await FileDownload.saveXlsx(
+        name: PricingExport.fileName(now),
+        bytes: bytes,
+      );
+      if (mounted) AppSnack.success(context, Strings.exportDone);
+    } catch (e) {
+      if (mounted) AppSnack.error(context, describeError(e));
+    }
   }
 
   Future<void> _editFactor(PricingFactor factor) async {
@@ -152,6 +168,14 @@ class _ProceduresTabState extends ConsumerState<ProceduresTab>
               onSelected: (v) =>
                   _setFilters(filters.copyWith(includeInactive: v)),
             ),
+            if (data != null && data.procedures.isNotEmpty)
+              AppButton(
+                label: Strings.exportExcel,
+                icon: Icons.download_rounded,
+                variant: AppButtonVariant.secondary,
+                expanded: false,
+                onPressed: () => _export(data),
+              ),
             if (canCreate && data != null)
               AppButton(
                 label: Strings.newProcedure,

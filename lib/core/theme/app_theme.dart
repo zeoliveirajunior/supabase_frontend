@@ -17,6 +17,12 @@ abstract final class AppColors {
   static const success = Color(0xFF2E9E6B);
   static const warning = Color(0xFFE9A23B);
 
+  /// Marca Clinify: amarelo e dourado (logomarca e destaques).
+  static const gold = Color(0xFFD9A21B);
+  static const goldDark = Color(0xFFB8860B);
+  static const goldLight = Color(0xFFFFD84D);
+  static const goldPale = Color(0xFFFFF6D6);
+
   static const brandGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
