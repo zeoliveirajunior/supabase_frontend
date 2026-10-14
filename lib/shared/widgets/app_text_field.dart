@@ -31,6 +31,9 @@ class AppTextField extends StatelessWidget {
     this.textCapitalization = TextCapitalization.none,
     this.autofocus = false,
     this.initialValue,
+    this.maxLines = 1,
+    this.minLines,
+    this.helperText,
   });
 
   final String label;
@@ -54,10 +57,17 @@ class AppTextField extends StatelessWidget {
   final bool autofocus;
   final String? initialValue;
 
+  /// Mais de uma linha = area de texto (observacoes, notas).
+  final int? maxLines;
+  final int? minLines;
+  final String? helperText;
+
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
+      maxLines: maxLines,
+      minLines: minLines,
       initialValue: controller == null ? initialValue : null,
       focusNode: focusNode,
       enabled: enabled,
@@ -79,6 +89,7 @@ class AppTextField extends StatelessWidget {
         hintText: hint,
         prefixIcon: prefixIcon == null ? null : Icon(prefixIcon),
         suffixIcon: suffixIcon,
+        helperText: helperText,
         counterText: '',
       ),
     );

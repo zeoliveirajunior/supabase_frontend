@@ -6,4 +6,5 @@ abstract final class ScreenCodes {
   static const profiles = 'PROFILES';
   static const logs = 'LOGS';
   static const pricing = 'PRICING';
+  static const patients = 'PATIENTS';
 }
