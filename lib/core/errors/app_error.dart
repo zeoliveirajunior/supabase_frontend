@@ -30,3 +30,7 @@ class AppError implements Exception {
   @override
   String toString() => 'AppError($key): $message';
 }
+
+/// Texto para o usuario a partir de qualquer erro capturado na UI.
+String describeError(Object error) =>
+    error is AppError ? error.message : AppError.unexpected(error).message;

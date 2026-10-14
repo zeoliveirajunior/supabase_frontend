@@ -20,7 +20,9 @@ flutter test
 | Login (3 layouts: desktop, tablet, mobile) | pronta |
 | Seleção de empresa/filial (pop-up com pesquisa, só quando há mais de uma) | pronta |
 | Dashboard | em branco, aguardando dados |
-| Cadastro de usuários, perfis, logs | próximas |
+| Usuários da empresa (vincular, acesso por filial × perfil, bloquear, remover) | pronta, só admin |
+| Perfis de acesso | pronta |
+| Logs de acesso | pronta |
 
 ## Publicação
 
