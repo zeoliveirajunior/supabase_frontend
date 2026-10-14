@@ -78,10 +78,13 @@ lib/
 │   ├── dashboard/
 │   ├── profiles/                 # access_profile_list / access_profile_save
 │   ├── users/                    # company_user_list / company_user_save / branch_list
-│   └── logs/                     # access_log_list
+│   ├── logs/                     # access_log_list
+│   ├── pricing/                  # precificação: pricing_param_get/save, material_list/save, procedure_list/save, export Excel
+│   └── patients/                 # pacientes: patient_list/get/save, patient_note_save (lista, cadastro rápido, ficha com abas)
 ├── shared/
 │   ├── widgets/                  # AppTextField, AppPasswordField, AppButton, SearchableDropdown, AppShell, AppPageHeader, AppTable, AppStatusChip/AppTagChip, AppEmptyState, AppConfirmDialog, AppPagination, Choice, AppLogo, AppSnack, LoadingOverlay, SplashPage
 │   ├── formatters/masks.dart     # MaskType: cpf, cnpj, cpfCnpj, phone, cep, date (+ unmask/format)
+│   ├── formatters/dates.dart     # dd/MM/yyyy <-> ISO, idade (datas vão ao backend em ISO)
 │   └── validators/validators.dart# required, email, minLength, cpf, cnpj, cpfCnpj, phone, date, compose
 └── l10n/strings.dart             # textos pt-BR + tradução das chaves de erro
 assets/images/*.svg               # ilustrações próprias (tema odontológico)
@@ -90,6 +93,9 @@ test/                             # unit + widget + guarda do gateway
 ```
 
 Estado: **Riverpod** (`Notifier`/`AsyncNotifier`, providers no fim de cada arquivo).
+Tela com ficha (ex.: Pacientes): lista em `/pacientes` e ficha em `/pacientes/:nr`; a guarda de permissão do
+router casa a rota pelo prefixo (`AppRoutes.screenFor`). O formulário envia um mapa `coluna -> valor` com as
+mesmas chaves do backend (`vc_name`, `dt_birth`...): chave presente altera, `null` limpa, ausente mantém.
 Navegação: **go_router**. Tema: **Material 3**. Fonte: Manrope via `google_fonts` (em runtime;
 testes usam `AppTheme.light(useGoogleFonts: false)`).
 

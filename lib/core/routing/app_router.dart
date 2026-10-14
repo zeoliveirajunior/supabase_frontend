@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/login_page.dart';
 import '../../features/dashboard/presentation/dashboard_page.dart';
 import '../../features/logs/presentation/logs_page.dart';
+import '../../features/patients/presentation/patient_record_page.dart';
+import '../../features/patients/presentation/patients_page.dart';
 import '../../features/pricing/presentation/pricing_page.dart';
 import '../../features/profiles/presentation/profiles_page.dart';
 import '../../features/session/application/session_controller.dart';
@@ -24,6 +26,10 @@ abstract final class AppRoutes {
   static const profiles = '/perfis';
   static const logs = '/logs';
   static const pricing = '/precificacao';
+  static const patients = '/pacientes';
+
+  /// Ficha de um paciente.
+  static String patient(int nrPatient) => '$patients/$nrPatient';
 
   /// Rotas que nao fazem sentido com a sessao pronta.
   static const transient = {splash, login, selectBranch, noCompany};
@@ -34,14 +40,25 @@ abstract final class AppRoutes {
     profiles: ScreenCodes.profiles,
     logs: ScreenCodes.logs,
     pricing: ScreenCodes.pricing,
+    patients: ScreenCodes.patients,
   };
+
+  /// Tela exigida por [location]: a rota exata ou o prefixo (`/pacientes/3`).
+  static String? screenFor(String location) {
+    for (final e in screenOf.entries) {
+      if (location == e.key || location.startsWith('${e.key}/')) {
+        return e.value;
+      }
+    }
+    return null;
+  }
 }
 
 /// Com a sessao pronta: rotas transitorias vao ao dashboard e rota sem
 /// permissao de leitura tambem (o menu ja a esconde; isto cobre URL digitada).
 String? _guardReady(SessionState session, String location) {
   if (AppRoutes.transient.contains(location)) return AppRoutes.dashboard;
-  final code = AppRoutes.screenOf[location];
+  final code = AppRoutes.screenFor(location);
   if (code != null && !(session.selected?.canRead(code) ?? false)) {
     return AppRoutes.dashboard;
   }
@@ -103,6 +120,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: AppRoutes.logs, builder: (_, __) => const LogsPage()),
       GoRoute(path: AppRoutes.pricing, builder: (_, __) => const PricingPage()),
+      GoRoute(
+        path: AppRoutes.patients,
+        builder: (_, __) => const PatientsPage(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.patients}/:nr',
+        builder: (_, state) => PatientRecordPage(
+          nrPatient: int.tryParse(state.pathParameters['nr'] ?? '') ?? 0,
+        ),
+      ),
     ],
   );
 });

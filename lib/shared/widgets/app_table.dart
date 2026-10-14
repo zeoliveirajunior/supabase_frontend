@@ -12,11 +12,15 @@ class AppTable extends StatelessWidget {
     required this.columns,
     required this.rows,
     this.minWidth = 720,
+    this.showCheckboxColumn = false,
   });
 
   final List<DataColumn> columns;
   final List<DataRow> rows;
   final double minWidth;
+
+  /// Linhas com onSelectChanged ganham checkbox so quando pedido.
+  final bool showCheckboxColumn;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +39,7 @@ class AppTable extends StatelessWidget {
                 child: DataTable(
                   columns: columns,
                   rows: rows,
+                  showCheckboxColumn: showCheckboxColumn,
                   headingRowColor: const WidgetStatePropertyAll(
                     AppColors.surface,
                   ),

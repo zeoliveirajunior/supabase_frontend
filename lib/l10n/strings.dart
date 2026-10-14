@@ -394,6 +394,161 @@ abstract final class Strings {
   static const invalidDate = 'Data inválida.';
   static String minLength(int n) => 'Mínimo de $n caracteres.';
 
+  // Pacientes
+  static const patients = 'Pacientes';
+  static const patientsSubtitle =
+      'Busque, cadastre e acompanhe os pacientes da sua clínica.';
+  static const newPatient = 'Novo paciente';
+  static const editPatient = 'Editar paciente';
+  static const registerPatient = 'Cadastrar paciente';
+  static const searchPatientsHint =
+      'Nome, apelido, CPF, celular, e-mail ou prontuário';
+  static const searchPatientsHelp = 'Sobrenome: digite % antes (ex.: %silva).';
+  static const noPatients = 'Nenhum paciente cadastrado.';
+  static const noPatientsSubtitle =
+      'Cadastre o primeiro paciente para começar.';
+  static const noPatientsFound = 'Nenhum paciente encontrado.';
+  static const noPatientsFoundSubtitle =
+      'Confira a grafia ou use % antes do sobrenome.';
+  static const backToPatients = 'Voltar para Pacientes';
+  static const patientNotFound = 'Paciente não encontrado.';
+  static const patientInfo = 'Informações do paciente';
+  static const sectionRegistration = 'Cadastro';
+  static const sectionContact = 'Contato';
+  static const sectionComplement = 'Complemento';
+  static const tabRegistration = 'Dados cadastrais';
+  static const tabContact = 'Contato';
+  static const tabComplement = 'Dados complementares';
+  static const tabOverview = 'Visão geral';
+  static const tabBudgets = 'Orçamentos';
+  static const tabFinance = 'Financeiro';
+  static const tabPhotos = 'Fotos';
+  static const tabOdontogram = 'Odontograma';
+  static const tabAnamnesis = 'Anamnese';
+  static const tabDocuments = 'Documentos';
+  static const tabExams = 'Exames';
+  static const tabAppointments = 'Agendamentos';
+  static String moduleSoon(String module) => '$module chega em breve.';
+  static const moduleSoonSubtitle =
+      'Este módulo será construído em cima da ficha do paciente.';
+  static const nickname = 'Apelido';
+  static const nicknameHint = 'Como o paciente prefere ser chamado';
+  static const rg = 'RG';
+  static const rgHint = 'Como está no documento';
+  static const birthDate = 'Data de nascimento';
+  static const dateHint = 'dd/mm/aaaa';
+  static const birth = 'Nascimento';
+  static String yearsOld(int age) => '$age anos';
+  static const minorTag = 'Menor de idade';
+  static const gender = 'Gênero';
+  static const genderMale = 'Masculino';
+  static const genderFemale = 'Feminino';
+  static const genderOther = 'Outro';
+  static const maritalStatus = 'Estado civil';
+  static const maritalSingle = 'Solteiro(a)';
+  static const maritalMarried = 'Casado(a)';
+  static const maritalDivorced = 'Divorciado(a)';
+  static const maritalWidowed = 'Viúvo(a)';
+  static const maritalUnion = 'União estável';
+  static const education = 'Escolaridade';
+  static const educationElementary = 'Ensino fundamental';
+  static const educationHigh = 'Ensino médio';
+  static const educationCollege = 'Ensino superior';
+  static const educationPostgraduate = 'Pós-graduação';
+  static const howFound = 'Como conheceu';
+  static const sourceGoogle = 'Google';
+  static const sourceInstagram = 'Instagram';
+  static const sourceFacebook = 'Facebook';
+  static const sourceReferral = 'Indicação';
+  static const sourceSchool = 'Escola';
+  static const sourceBillboard = 'Outdoor';
+  static const sourceFlyer = 'Panfleto';
+  static const sourceSign = 'Placa';
+  static const sourcePlan = 'Plano / convênio';
+  static const sourceRadio = 'Rádio';
+  static const sourceTv = 'TV';
+  static const sourceMagazine = 'Revista';
+  static const sourceOther = 'Outros';
+  static const referredBy = 'Indicado por';
+  static const referredByHint = 'Ex.: Dra. Ana Souza';
+  static const observations = 'Observações';
+  static const observationsHint = 'Observações sobre o paciente';
+  static const mobileWhatsapp = 'Celular / WhatsApp';
+  static const landline = 'Telefone fixo';
+  static const otherPhone = 'Outro telefone';
+  static const contactName = 'Contato pelo celular de';
+  static const contactNameHint = 'Quando o celular é de outra pessoa';
+  static const noEmail = 'Não possui e-mail';
+  static const addressSection = 'Endereço';
+  static const zip = 'CEP';
+  static const state = 'UF';
+  static const city = 'Cidade';
+  static const street = 'Endereço';
+  static const addressNumber = 'Número';
+  static const district = 'Bairro';
+  static const addressComplement = 'Complemento';
+  static const recordNumber = 'Nº do prontuário';
+  static const profession = 'Profissão';
+  static const workplace = 'Local de trabalho';
+  static const workTime = 'Tempo de trabalho';
+  static const planName = 'Nome do plano';
+  static const planNumber = 'Nº do plano';
+  static const filiation = 'Filiação';
+  static const fatherName = 'Nome do pai';
+  static const fatherCpf = 'CPF do pai';
+  static const fatherRg = 'RG do pai';
+  static const fatherProfession = 'Profissão do pai';
+  static const motherName = 'Nome da mãe';
+  static const motherCpf = 'CPF da mãe';
+  static const motherRg = 'RG da mãe';
+  static const motherProfession = 'Profissão da mãe';
+  static const legalGuardian = 'Representante legal';
+  static const registeredAt = 'Cadastrado em';
+  static const cpfNotInformed = 'CPF não informado';
+  static const patientActive = 'Paciente ativo';
+  static const inactivatePatient = 'Inativar paciente';
+  static const reactivatePatient = 'Reativar paciente';
+  static const inactivateConfirm =
+      'O paciente sai das buscas, mas a ficha e o histórico ficam guardados. Inativar?';
+  static const patientInactivated = 'Paciente inativado.';
+  static const patientReactivated = 'Paciente reativado.';
+  static const patientCreated = 'Paciente cadastrado.';
+  static const openRecord = 'Abrir ficha';
+  static const nextAppointment = 'Próximo agendamento';
+  static const noNextAppointment = 'Sem próximo agendamento';
+  static const noNextAppointmentHint = 'A agenda chega em breve.';
+  static const noAnamnesis = 'Sem anamnese';
+  static const noAnamnesisHint = 'A anamnese digital chega em breve.';
+  static const returnAlert = 'Alerta de retorno';
+  static const noReturnAlert = 'Sem alerta de retorno';
+  static const noReturnAlertHint =
+      'Defina uma data para lembrar de chamar o paciente.';
+  static const newReturnAlert = 'Novo alerta';
+  static const editReturnAlert = 'Alterar alerta';
+  static const removeReturnAlert = 'Remover alerta';
+  static const returnAlertDate = 'Data do retorno';
+  static const returnAlertReason = 'Motivo';
+  static const returnAlertReasonHint = 'Ex.: Retorno da limpeza';
+  static const returnAlertSaved = 'Alerta de retorno salvo.';
+  static const returnAlertRemoved = 'Alerta de retorno removido.';
+  static const openBudgets = 'Orçamentos em aberto';
+  static const noOpenBudgets = 'Sem orçamentos em aberto';
+  static const noOpenBudgetsHint =
+      'Os orçamentos chegam em breve, usando a precificação.';
+  static const generalNotes = 'Notas gerais';
+  static const noNotes = 'Sem notas gerais';
+  static const noNotesHint =
+      'Registre aqui observações importantes sobre o paciente.';
+  static const addNote = 'Adicionar nota';
+  static const noteText = 'Nota';
+  static const noteHint = 'Escreva a nota...';
+  static const deleteNote = 'Excluir nota';
+  static const deleteNoteConfirm = 'A nota some da ficha. Excluir?';
+  static const noteAdded = 'Nota adicionada.';
+  static const noteDeleted = 'Nota excluída.';
+  static const requiredFieldsHint = '* obrigatório';
+  static const notInformed = 'Não informado';
+
   static const Map<String, String> _errors = {
     // Auth (Supabase Auth)
     'AUTH_INVALID_CREDENTIALS': 'E-mail ou senha inválidos.',
@@ -533,6 +688,27 @@ abstract final class Strings {
         'A pesquisa de preços não está configurada neste ambiente. Informe o preço manualmente.',
     'MATERIAL_LOOKUP_FAILED': 'A pesquisa de preços falhou. {Detail}',
     'MATERIAL_LOOKUP_BACKEND_ERROR': 'Falha na pesquisa. {Detail}',
+    // Backend: pacientes
+    'PATIENT_ACTION_INVALID': 'Ação inválida.',
+    'PATIENT_BRANCH_REQUIRED': 'Filial não informada.',
+    'PATIENT_FORBIDDEN': 'Você não tem permissão para esta ação em pacientes.',
+    'PATIENT_REQUIRED': 'Paciente não informado.',
+    'PATIENT_NOT_FOUND': 'Paciente não encontrado.',
+    'PATIENT_VALUE_INVALID': 'Valor inválido no campo {Field}.',
+    'PATIENT_NAME_REQUIRED': 'Informe o nome do paciente.',
+    'PATIENT_BIRTH_REQUIRED': 'Informe a data de nascimento.',
+    'PATIENT_BIRTH_INVALID': 'Data de nascimento inválida.',
+    'PATIENT_CPF_INVALID': 'CPF inválido.',
+    'PATIENT_CPF_IN_USE': 'Este CPF já está no cadastro de {Name}.',
+    'PATIENT_EMAIL_INVALID': 'E-mail inválido.',
+    'PATIENT_PHONE_INVALID': 'Telefone inválido.',
+    'PATIENT_ZIP_INVALID': 'CEP inválido.',
+    'PATIENT_STATE_INVALID': 'UF inválida.',
+    'PATIENT_STATUS_INVALID': 'Situação inválida.',
+    'PATIENT_NOTE_ACTION_INVALID': 'Ação inválida.',
+    'PATIENT_NOTE_FORBIDDEN': 'Você não tem permissão para alterar as notas.',
+    'PATIENT_NOTE_REQUIRED': 'Escreva a nota.',
+    'PATIENT_NOTE_NOT_FOUND': 'Nota não encontrada.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',
