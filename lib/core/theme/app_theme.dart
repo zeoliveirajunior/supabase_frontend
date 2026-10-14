@@ -22,6 +22,7 @@ abstract final class AppColors {
   static const goldDark = Color(0xFFB8860B);
   static const goldLight = Color(0xFFFFD84D);
   static const goldPale = Color(0xFFFFF6D6);
+  static const goldDeep = Color(0xFF8C6508);
 
   static const brandGradient = LinearGradient(
     begin: Alignment.topLeft,

@@ -4,10 +4,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/strings.dart';
 
-/// Logomarca Clinify: selo dourado com o dente estilizado + nome em dourado.
+/// Logomarca Clinify: monograma "C" em ouro metalico sobre um selo grafite com
+/// filete dourado e um diamante lapidado na boca do C; nome em caixa alta,
+/// espacado, tambem em ouro.
 ///
 /// [color] e mantido pelos chamadores antigos: branco indica fundo escuro, e
-/// ai o nome usa o dourado claro; em fundo claro usa o dourado escuro.
+/// ai o nome usa o ouro claro; em fundo claro usa o ouro escuro (contraste).
 /// [wordmarkColor] forca uma cor solida no nome.
 class AppLogo extends StatelessWidget {
   const AppLogo({
@@ -35,25 +37,26 @@ class AppLogo extends StatelessWidget {
 
     final onDark = color == Colors.white;
     Widget wordmark = Text(
-      Strings.appName,
+      Strings.appName.toUpperCase(),
       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-        fontSize: size * 0.65,
+        fontSize: size * 0.54,
         fontWeight: FontWeight.w800,
         color: wordmarkColor ?? Colors.white,
-        letterSpacing: -0.5,
-        height: 1.1,
+        letterSpacing: size * 0.09,
+        height: 1.0,
       ),
     );
     if (wordmarkColor == null) {
       final colors = onDark
-          ? const [AppColors.goldPale, AppColors.goldLight]
-          : const [AppColors.goldLight, AppColors.goldDark];
+          ? const [AppColors.goldPale, AppColors.goldLight, AppColors.gold]
+          : const [AppColors.goldLight, AppColors.gold, AppColors.goldDeep];
       wordmark = ShaderMask(
         blendMode: BlendMode.srcIn,
         shaderCallback: (bounds) => LinearGradient(
           colors: colors,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          stops: const [0, 0.45, 1],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ).createShader(bounds),
         child: wordmark,
       );
@@ -63,7 +66,7 @@ class AppLogo extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         icon,
-        SizedBox(width: size * 0.25),
+        SizedBox(width: size * 0.3),
         wordmark,
       ],
     );

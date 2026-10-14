@@ -1,17 +1,39 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <defs>
-    <linearGradient id="clinify_gold" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#FFD84D"/>
-      <stop offset="0.55" stop-color="#F2B61E"/>
-      <stop offset="1" stop-color="#B8860B"/>
+    <linearGradient id="cf_rim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFE68F"/>
+      <stop offset="0.5" stop-color="#C9961A"/>
+      <stop offset="1" stop-color="#6F4D05"/>
     </linearGradient>
-    <linearGradient id="clinify_shine" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.38"/>
-      <stop offset="0.6" stop-color="#FFFFFF" stop-opacity="0"/>
+    <linearGradient id="cf_bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2C3039"/>
+      <stop offset="1" stop-color="#0F1115"/>
+    </linearGradient>
+    <radialGradient id="cf_glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#F2B61E" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#F2B61E" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cf_gold" x1="0" y1="0" x2="0.55" y2="1">
+      <stop offset="0" stop-color="#FFF3C2"/>
+      <stop offset="0.28" stop-color="#FFD84D"/>
+      <stop offset="0.55" stop-color="#E4AA18"/>
+      <stop offset="0.8" stop-color="#B8860B"/>
+      <stop offset="1" stop-color="#8C6508"/>
     </linearGradient>
   </defs>
-  <rect x="2" y="2" width="60" height="60" rx="17" fill="url(#clinify_gold)"/>
-  <rect x="2" y="2" width="60" height="60" rx="17" fill="url(#clinify_shine)"/>
-  <path fill="#FFFFFF" d="M24.5 14C18.9 14 15 18.3 15 24.2c0 5.6 2.2 8.7 3.4 15.1 1.1 6 2.8 14 6.5 14 3.5 0 3.6-7 4.5-11.5.5-2.7 1.4-4.2 3-4.2s2.5 1.5 3 4.2c.8 4.5 1 11.5 4.5 11.5 3.7 0 5.4-8 6.5-14 1.2-6.4 3.4-9.5 3.4-15.1C49.8 18.3 46 14 40.4 14c-3.3 0-5 2-7.9 2s-4.7-2-8-2Z"/>
-  <path fill="#FFF6D6" d="M48.5 7l1.4 3.6 3.6 1.4-3.6 1.4-1.4 3.6-1.4-3.6-3.6-1.4 3.6-1.4Z"/>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#cf_rim)"/>
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#cf_bg)"/>
+  <circle cx="32" cy="32" r="27" fill="url(#cf_glow)"/>
+  <path d="M44.02 44.02A17 17 0 1 1 44.02 19.98" stroke="url(#cf_gold)" stroke-width="9"/>
+  <path d="M12.27 24.82A21 21 0 0 1 39.18 12.27" stroke="#FFFFFF" stroke-opacity="0.32" stroke-width="0.9" stroke-linecap="round"/>
+  <g id="gem">
+    <path d="M43 26.5H49L51.5 30.5H40.5Z" fill="url(#cf_gold)"/>
+    <path d="M40.5 30.5H51.5L46 38.5Z" fill="url(#cf_gold)"/>
+    <path d="M40.5 30.5L43 26.5L44.2 30.5Z" fill="#FFFFFF" fill-opacity="0.22"/>
+    <path d="M43 26.5H49L47.8 30.5H44.2Z" fill="#FFFFFF" fill-opacity="0.48"/>
+    <path d="M49 26.5L51.5 30.5H47.8Z" fill="#000000" fill-opacity="0.08"/>
+    <path d="M40.5 30.5H44.2L46 38.5Z" fill="#FFFFFF" fill-opacity="0.12"/>
+    <path d="M44.2 30.5H47.8L46 38.5Z" fill="#000000" fill-opacity="0.10"/>
+    <path d="M47.8 30.5H51.5L46 38.5Z" fill="#000000" fill-opacity="0.30"/>
+  </g>
 </svg>
