@@ -85,7 +85,7 @@ class ProcedureDraft {
   };
 }
 
-/// RPCs do schema `od` da tela de precificacao e a Edge Function de preco de mercado.
+/// RPCs da tela de precificacao (schema `ad`, dados em `od`) e a Edge Function de preco de mercado.
 class PricingRepository {
   PricingRepository(this._gateway);
 
@@ -95,7 +95,7 @@ class PricingRepository {
     required int nrCompany,
     required int nrBranch,
   }) async {
-    final json = await _gateway.rpcIn('od', 'pricing_param_get', {
+    final json = await _gateway.rpc('pricing_param_get', {
       'nr_company': nrCompany,
       'nr_branch': nrBranch,
     });
@@ -109,7 +109,7 @@ class PricingRepository {
     List<ClinicExpense>? expenses,
     List<PricingFee>? fees,
   }) async {
-    await _gateway.rpcIn('od', 'pricing_param_save', {
+    await _gateway.rpc('pricing_param_save', {
       'nr_company': nrCompany,
       'nr_branch': nrBranch,
       if (params != null) 'params': params.toJson(),
@@ -124,7 +124,7 @@ class PricingRepository {
     bool includeInactive = false,
     String? search,
   }) async {
-    final json = await _gateway.rpcIn('od', 'material_list', {
+    final json = await _gateway.rpc('material_list', {
       'nr_company': nrCompany,
       'nr_branch': nrBranch,
       'id_include_inactive': includeInactive,
@@ -143,7 +143,7 @@ class PricingRepository {
     required int nrBranch,
     required MaterialDraft draft,
   }) async {
-    final json = await _gateway.rpcIn('od', 'material_save', {
+    final json = await _gateway.rpc('material_save', {
       'vc_action': 'I',
       'nr_company': nrCompany,
       'nr_branch': nrBranch,
@@ -158,7 +158,7 @@ class PricingRepository {
     required int nrMaterial,
     required MaterialDraft draft,
   }) async {
-    await _gateway.rpcIn('od', 'material_save', {
+    await _gateway.rpc('material_save', {
       'vc_action': 'U',
       'nr_company': nrCompany,
       'nr_branch': nrBranch,
@@ -175,7 +175,7 @@ class PricingRepository {
     String? category,
     int? itTaxRegime,
   }) async {
-    final json = await _gateway.rpcIn('od', 'procedure_list', {
+    final json = await _gateway.rpc('procedure_list', {
       'nr_company': nrCompany,
       'nr_branch': nrBranch,
       'id_include_inactive': includeInactive,
@@ -191,7 +191,7 @@ class PricingRepository {
     required int nrBranch,
     required ProcedureDraft draft,
   }) async {
-    final json = await _gateway.rpcIn('od', 'procedure_save', {
+    final json = await _gateway.rpc('procedure_save', {
       'vc_action': 'I',
       'nr_company': nrCompany,
       'nr_branch': nrBranch,
@@ -206,7 +206,7 @@ class PricingRepository {
     required int nrProcedure,
     required ProcedureDraft draft,
   }) async {
-    await _gateway.rpcIn('od', 'procedure_save', {
+    await _gateway.rpc('procedure_save', {
       'vc_action': 'U',
       'nr_company': nrCompany,
       'nr_branch': nrBranch,
