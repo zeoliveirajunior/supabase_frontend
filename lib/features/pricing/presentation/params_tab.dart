@@ -86,6 +86,7 @@ class _ParamsTabState extends ConsumerState<ParamsTab>
     'pcTaxPf',
     'pcTaxPj',
     'pcProfit',
+    'vlStructureHourManual',
   ];
 
   @override
@@ -127,6 +128,7 @@ class _ParamsTabState extends ConsumerState<ParamsTab>
       'pcTaxPf': Numbers.toField(p.pcTaxPf),
       'pcTaxPj': Numbers.toField(p.pcTaxPj),
       'pcProfit': Numbers.toField(p.pcProfit),
+      'vlStructureHourManual': Numbers.toField(p.vlStructureHourManual),
     };
     for (final f in _fields) {
       _c[f] = TextEditingController(text: values[f]);
@@ -143,6 +145,9 @@ class _ParamsTabState extends ConsumerState<ParamsTab>
 
   double _num(String field) => Numbers.parse(_c[field]!.text) ?? 0;
 
+  double? _numOrNull(String field) =>
+      _c[field]!.text.trim().isEmpty ? null : Numbers.parse(_c[field]!.text);
+
   PricingParams get _edited => _params.copyWith(
     qtRooms: _num('qtRooms').round(),
     qtHoursWeek: _num('qtHoursWeek'),
@@ -155,6 +160,8 @@ class _ParamsTabState extends ConsumerState<ParamsTab>
     pcTaxPf: _num('pcTaxPf'),
     pcTaxPj: _num('pcTaxPj'),
     pcProfit: _num('pcProfit'),
+    vlStructureHourManual: _numOrNull('vlStructureHourManual'),
+    clearStructureManual: _numOrNull('vlStructureHourManual') == null,
   );
 
   List<ClinicExpense> get _editedExpenses => [
@@ -256,13 +263,14 @@ class _ParamsTabState extends ConsumerState<ParamsTab>
         !_saving;
     final edited = _edited;
     final monthly = PricingCalculator.monthlyCost(_editedExpenses);
-    final structureHour = PricingCalculator.structureHour(
+    final structureCalc = PricingCalculator.structureHour(
       monthlyCost: monthly,
       rooms: edited.qtRooms,
       hoursWeek: edited.qtHoursWeek,
       weeksMonth: edited.qtWeeksMonth,
       pcOccupancy: edited.pcOccupancy,
     );
+    final structureHour = edited.vlStructureHourManual ?? structureCalc;
     final pcFees = PricingCalculator.activeFees(_editedFees);
     final total =
         edited.pcCard +
@@ -370,6 +378,18 @@ class _ParamsTabState extends ConsumerState<ParamsTab>
                       helper: Strings.occupancyHelp,
                       required: true,
                       positive: true,
+                      enabled: canEdit,
+                      onChanged: refresh,
+                    ),
+                  ),
+                  SizedBox(
+                    width: isMobile ? double.infinity : 300,
+                    child: AppNumberField(
+                      label: Strings.structureManual,
+                      controller: _c['vlStructureHourManual'],
+                      prefixText: 'R\$ ',
+                      helper:
+                          '${Strings.structureCalc}: ${Numbers.money(structureCalc)}${Strings.perHour}. ${Strings.structureManualHelp}',
                       enabled: canEdit,
                       onChanged: refresh,
                     ),

@@ -74,6 +74,16 @@ void main() {
         expect(d.permission.idUpdate, isFalse);
         expect(d.params.toJson()['it_tax_regime'], 2);
         expect(d.params.copyWith(pcProfit: 30).toJson()['pc_profit'], 30);
+        expect(d.params.vlStructureHourManual, isNull);
+        expect(d.summary.vlStructureHourCalc, 62.5);
+        final manual = d.params.copyWith(vlStructureHourManual: 70);
+        expect(manual.toJson()['vl_structure_hour_manual'], 70);
+        expect(
+          manual
+              .copyWith(clearStructureManual: true)
+              .toJson()['vl_structure_hour_manual'],
+          isNull,
+        );
       },
     );
   });

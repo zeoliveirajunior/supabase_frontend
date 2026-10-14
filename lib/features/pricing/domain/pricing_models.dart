@@ -67,6 +67,7 @@ class PricingParams {
     this.pcTaxPf = 27.5,
     this.pcTaxPj = 11.33,
     this.pcProfit = 30,
+    this.vlStructureHourManual,
     this.idSaved = false,
   });
 
@@ -84,6 +85,7 @@ class PricingParams {
     pcTaxPf: _double(json['pc_tax_pf'] ?? 0),
     pcTaxPj: _double(json['pc_tax_pj'] ?? 0),
     pcProfit: _double(json['pc_profit'] ?? 0),
+    vlStructureHourManual: _doubleOrNull(json['vl_structure_hour_manual']),
     idSaved: json['id_saved'] == true,
   );
 
@@ -100,6 +102,9 @@ class PricingParams {
   final double pcTaxPf;
   final double pcTaxPj;
   final double pcProfit;
+
+  /// Custo da estrutura por hora digitado (null = usa o calculo das despesas).
+  final double? vlStructureHourManual;
   final bool idSaved;
 
   /// IR do regime escolhido.
@@ -123,6 +128,7 @@ class PricingParams {
     'pc_tax_pf': pcTaxPf,
     'pc_tax_pj': pcTaxPj,
     'pc_profit': pcProfit,
+    'vl_structure_hour_manual': vlStructureHourManual,
   };
 
   PricingParams copyWith({
@@ -137,6 +143,8 @@ class PricingParams {
     double? pcTaxPf,
     double? pcTaxPj,
     double? pcProfit,
+    double? vlStructureHourManual,
+    bool clearStructureManual = false,
     bool? idSaved,
   }) => PricingParams(
     nrCompany: nrCompany,
@@ -152,6 +160,9 @@ class PricingParams {
     pcTaxPf: pcTaxPf ?? this.pcTaxPf,
     pcTaxPj: pcTaxPj ?? this.pcTaxPj,
     pcProfit: pcProfit ?? this.pcProfit,
+    vlStructureHourManual: clearStructureManual
+        ? null
+        : (vlStructureHourManual ?? this.vlStructureHourManual),
     idSaved: idSaved ?? this.idSaved,
   );
 }
@@ -167,6 +178,7 @@ class PricingSummary {
     this.qtHoursMonth = 0,
     this.qtProductiveHours = 0,
     this.vlStructureHour = 0,
+    this.vlStructureHourCalc = 0,
     this.pcFees = 0,
     this.pcTax = 0,
     this.pcTotal = 0,
@@ -182,6 +194,9 @@ class PricingSummary {
     qtHoursMonth: _double(json['qt_hours_month'] ?? 0),
     qtProductiveHours: _double(json['qt_productive_hours'] ?? 0),
     vlStructureHour: _double(json['vl_structure_hour'] ?? 0),
+    vlStructureHourCalc: _double(
+      json['vl_structure_hour_calc'] ?? json['vl_structure_hour'] ?? 0,
+    ),
     pcFees: _double(json['pc_fees'] ?? 0),
     pcTax: _double(json['pc_tax'] ?? 0),
     pcTotal: _double(json['pc_total'] ?? 0),
@@ -197,7 +212,12 @@ class PricingSummary {
   final double vlMonthlyCost;
   final double qtHoursMonth;
   final double qtProductiveHours;
+
+  /// Custo da estrutura por hora em vigor (manual, se informado).
   final double vlStructureHour;
+
+  /// Custo da estrutura por hora calculado pelas despesas.
+  final double vlStructureHourCalc;
   final double pcFees;
   final double pcTax;
   final double pcTotal;

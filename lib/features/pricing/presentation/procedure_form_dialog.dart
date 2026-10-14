@@ -12,15 +12,20 @@ import '../../../shared/widgets/app_number_field.dart';
 import '../../../shared/widgets/app_snack.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/searchable_dropdown.dart';
+import '../../session/application/permissions.dart';
+import '../../session/domain/screen_codes.dart';
 import '../application/pricing_controllers.dart';
 import '../data/pricing_repository.dart';
 import '../domain/pricing_calculator.dart';
 import '../domain/pricing_models.dart';
+import 'factor_edit_dialog.dart';
 import 'pricing_breakdown.dart';
 
 /// Novo procedimento (procedure = null) ou edicao: dados, materiais x
 /// quantidade e a simulacao do preco ao vivo (PricingCalculator) com a
-/// escolha PF / PJ. Devolve true quando salvou.
+/// escolha PF / PJ. Cada fator da simulacao e clicavel e pode ser alterado
+/// na hora (parametros da filial ou valor so deste procedimento).
+/// Devolve true quando salvou.
 class ProcedureFormDialog extends ConsumerStatefulWidget {
   const ProcedureFormDialog({
     super.key,
@@ -83,6 +88,10 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
   late List<ProcedureMaterial> _materials = [...?_p?.materials];
   final Map<int, TextEditingController> _qty = {};
   late bool _active = _p?.isActive ?? true;
+
+  /// Parametros da filial em vigor na simulacao (atualizados pela edicao inline).
+  late PricingParams _params = widget.params;
+  late PricingSummary _summary = widget.summary;
   late int _regime = widget.summary.itTaxRegime ?? widget.params.itTaxRegime;
   bool _saving = false;
 
@@ -134,14 +143,14 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
       vlMaterial: _materialsCost + _num(_other),
       vlLab: _num(_lab),
       qtMinutes: _num(_minutes),
-      vlStructureHour: widget.summary.vlStructureHour,
-      vlProfessionalHour: widget.params.vlProfessionalHour,
-      pcCard: widget.params.pcCard,
-      pcCommission: _numOrNull(_commission) ?? widget.params.pcCommission,
-      pcFees: widget.summary.pcFees,
+      vlStructureHour: _summary.vlStructureHour,
+      vlProfessionalHour: _params.vlProfessionalHour,
+      pcCard: _params.pcCard,
+      pcCommission: _numOrNull(_commission) ?? _params.pcCommission,
+      pcFees: _summary.pcFees,
       itTaxRegime: _regime,
-      pcTax: widget.params.pcTaxFor(_regime),
-      pcProfit: _numOrNull(_profit) ?? widget.params.pcProfit,
+      pcTax: _params.pcTaxFor(_regime),
+      pcProfit: _numOrNull(_profit) ?? _params.pcProfit,
     ),
   );
 
@@ -167,6 +176,32 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
     setState(() {
       _materials = _materials.where((m) => m.nrMaterial != nrMaterial).toList();
       _qty.remove(nrMaterial)?.dispose();
+    });
+  }
+
+  /// Edicao inline de um fator: parametros da filial (salvos na hora) e, para
+  /// comissao/lucro, o valor so deste procedimento (vai no Salvar).
+  Future<void> _editFactor(PricingFactor factor) async {
+    final override = switch (factor) {
+      PricingFactor.commission => _numOrNull(_commission),
+      PricingFactor.profit => _numOrNull(_profit),
+      _ => null,
+    };
+    final result = await FactorEditDialog.show(
+      context,
+      factor: factor,
+      overrideValue: override,
+      withOverride: _canEdit && factor.hasOverride,
+    );
+    if (result == null || !mounted) return;
+    setState(() {
+      _params = result.data.params;
+      _summary = result.data.summary;
+      if (factor == PricingFactor.tax) _regime = _params.itTaxRegime;
+      if (result.overrideChanged) {
+        final c = factor == PricingFactor.commission ? _commission : _profit;
+        c.text = Numbers.toField(result.overrideValue);
+      }
     });
   }
 
@@ -214,6 +249,9 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
     final theme = Theme.of(context);
     final isMobile = context.isMobile;
     final catalog = ref.watch(materialCatalogProvider).valueOrNull ?? const [];
+    final canUpdateParams =
+        ref.watch(canUpdateProvider(ScreenCodes.pricing)) ||
+        (ref.watch(canCreateProvider(ScreenCodes.pricing)) && !_params.idSaved);
     final available = [
       for (final m in catalog)
         if (!_materials.any((x) => x.nrMaterial == m.nrMaterial)) m,
@@ -330,7 +368,7 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
               controller: _commission,
               suffixText: '%',
               helper: Strings.defaultValue(
-                Numbers.percent(widget.params.pcCommission, decimals: 2),
+                Numbers.percent(_params.pcCommission, decimals: 2),
               ),
               enabled: _canEdit,
               onChanged: (_) => setState(() {}),
@@ -340,7 +378,7 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
               controller: _profit,
               suffixText: '%',
               helper: Strings.defaultValue(
-                Numbers.percent(widget.params.pcProfit, decimals: 2),
+                Numbers.percent(_params.pcProfit, decimals: 2),
               ),
               enabled: _canEdit,
               onChanged: (_) => setState(() {}),
@@ -412,11 +450,12 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
       result: _result,
       regime: _regime,
       currentPrice: _numOrNull(_current),
-      params: widget.params,
-      summary: widget.summary,
-      pcCommission: _numOrNull(_commission) ?? widget.params.pcCommission,
-      pcProfit: _numOrNull(_profit) ?? widget.params.pcProfit,
+      params: _params,
+      summary: _summary,
+      pcCommission: _numOrNull(_commission) ?? _params.pcCommission,
+      pcProfit: _numOrNull(_profit) ?? _params.pcProfit,
       onRegime: (r) => setState(() => _regime = r),
+      onEditFactor: canUpdateParams && !_saving ? _editFactor : null,
     );
 
     return Dialog(
@@ -590,7 +629,7 @@ class _MaterialRow extends StatelessWidget {
   }
 }
 
-/// Simulacao ao vivo com a escolha do regime.
+/// Simulacao ao vivo com a escolha do regime e os fatores clicaveis.
 class _ResultPanel extends StatelessWidget {
   const _ResultPanel({
     required this.result,
@@ -601,6 +640,7 @@ class _ResultPanel extends StatelessWidget {
     required this.pcCommission,
     required this.pcProfit,
     required this.onRegime,
+    this.onEditFactor,
   });
 
   final PricingResult result;
@@ -611,6 +651,7 @@ class _ResultPanel extends StatelessWidget {
   final double pcCommission;
   final double pcProfit;
   final ValueChanged<int> onRegime;
+  final ValueChanged<PricingFactor>? onEditFactor;
 
   @override
   Widget build(BuildContext context) {
@@ -659,6 +700,14 @@ class _ResultPanel extends StatelessWidget {
                 : Strings.taxRegimePfHelp,
             style: theme.textTheme.bodySmall?.copyWith(color: AppColors.muted),
           ),
+          if (onEditFactor != null)
+            Text(
+              Strings.factorsHint,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.primaryDark,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           const Divider(height: AppSpacing.lg),
           PricingBreakdown(
             result: result,
@@ -668,6 +717,7 @@ class _ResultPanel extends StatelessWidget {
             pcFees: summary.pcFees,
             pcTax: params.pcTaxFor(regime),
             pcProfit: pcProfit,
+            onEditFactor: onEditFactor,
           ),
         ],
       ),
