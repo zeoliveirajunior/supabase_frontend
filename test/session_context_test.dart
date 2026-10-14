@@ -1,10 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:odonto_app/features/session/domain/screen_codes.dart';
 import 'package:odonto_app/features/session/domain/session_context.dart';
 
 Map<String, dynamic> _json({
   int companies = 1,
   int branchesPerCompany = 1,
   List<Map<String, dynamic>> blocked = const [],
+  int level = 100,
+  List<Map<String, dynamic>>? permissions,
 }) {
   return {
     'user': {
@@ -22,7 +25,7 @@ Map<String, dynamic> _json({
           'vc_name': 'Clínica $c',
           'vc_cnpj': '11222333000181',
           'nr_company_user': 100 + c,
-          'id_admin': c == 1,
+          'id_admin': c == 1 && level >= 100,
           'branches': [
             for (var b = 1; b <= branchesPerCompany; b++)
               {
@@ -31,14 +34,15 @@ Map<String, dynamic> _json({
                 'vc_cnpj': null,
                 'vc_timezone': 'America/Sao_Paulo',
                 'id_main': b == 1,
-                'it_level': c == 1 ? 100 : 10,
+                'it_level': c == 1 ? level : 10,
                 'profiles': [
                   {
                     'nr_profile': 1,
                     'vc_name': 'Administrador',
-                    'it_level': 100,
+                    'it_level': level,
                   },
                 ],
+                if (permissions != null) 'permissions': permissions,
               },
           ],
         },
@@ -118,5 +122,59 @@ void main() {
     final json = _json();
     json['user']['nr_user'] = 7.0;
     expect(SessionContext.fromJson(json).user.nrUser, 7);
+  });
+
+  group('permissoes por tela', () {
+    test('administrador pode tudo mesmo sem lista de permissoes', () {
+      final ref = SessionContext.fromJson(_json()).branches.single;
+      expect(ref.canRead(ScreenCodes.users), isTrue);
+      expect(ref.canCreate(ScreenCodes.profiles), isTrue);
+      expect(ref.canUpdate(ScreenCodes.logs), isTrue);
+    });
+
+    test('usuario comum: so o que veio em permissions; dashboard sempre', () {
+      final ctx = SessionContext.fromJson(
+        _json(
+          level: 10,
+          permissions: [
+            {
+              'uu_screen': 'u-1',
+              'vc_code': 'USERS',
+              'vc_name': 'Usuários',
+              'id_read': true,
+              'id_create': false,
+              'id_update': false,
+            },
+            {
+              'uu_screen': 'u-2',
+              'vc_code': 'PROFILES',
+              'vc_name': 'Perfis',
+              'id_read': true,
+              'id_create': true,
+              'id_update': false,
+            },
+          ],
+        ),
+      );
+      final ref = ctx.branches.single;
+      expect(ref.isAdmin, isFalse);
+      expect(ref.canRead(ScreenCodes.dashboard), isTrue);
+      expect(ref.canRead(ScreenCodes.users), isTrue);
+      expect(ref.canCreate(ScreenCodes.users), isFalse);
+      expect(ref.canRead(ScreenCodes.profiles), isTrue);
+      expect(ref.canCreate(ScreenCodes.profiles), isTrue);
+      expect(ref.canUpdate(ScreenCodes.profiles), isFalse);
+      expect(ref.canRead(ScreenCodes.logs), isFalse);
+      expect(ref.branch.permission('PROFILES')?.vcName, 'Perfis');
+    });
+
+    test(
+      'sem permissions no JSON (backend antigo) o comum ve so o dashboard',
+      () {
+        final ref = SessionContext.fromJson(_json(level: 10)).branches.single;
+        expect(ref.canRead(ScreenCodes.dashboard), isTrue);
+        expect(ref.canRead(ScreenCodes.users), isFalse);
+      },
+    );
   });
 }

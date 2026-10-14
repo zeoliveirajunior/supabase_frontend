@@ -138,6 +138,48 @@ abstract final class Strings {
   static const noBranch = 'Sem filial';
   static String lastDays(int n) => 'Últimos $n dias';
 
+  // Navegacao e permissoes
+  static const adminMenu = 'Administração';
+  static const openAdminMenu = 'Abrir ou fechar o menu de administração';
+  static const noPermissionTitle = 'Sem acesso a esta tela';
+  static const noPermissionSubtitle =
+      'Peça a um administrador para liberar esta tela no seu perfil.';
+  static const permRead = 'Ler';
+  static const permCreate = 'Criar';
+  static const permUpdate = 'Alterar';
+  static const screen = 'Tela';
+  static const screensTitle = 'Telas e permissões';
+  static const adminAllScreens =
+      'Nível 100 é administrador: acesso total a todas as telas, sem precisar marcar.';
+  static const allScreens = 'Todas as telas';
+  static const noScreens = 'Nenhuma tela liberada';
+  static String screensCount(int n) => n == 1 ? '1 tela' : '$n telas';
+  static const close = 'Fechar';
+
+  // Cadastro de usuario (Edge Function user-create)
+  static const newUser = 'Novo usuário';
+  static const newUserHelp =
+      'Se o e-mail já tiver conta no app, só o vínculo com a empresa é criado.';
+  static const fullName = 'Nome completo';
+  static const cpf = 'CPF';
+  static const phone = 'Telefone';
+  static const mobile = 'Celular';
+  static const initialPassword = 'Senha inicial';
+  static const confirmPassword = 'Confirmar senha';
+  static const passwordsDiffer = 'As senhas não conferem.';
+  static const userCreated = 'Usuário cadastrado.';
+
+  // Log de atividades
+  static const activitiesTab = 'Atividades';
+  static const accessTab = 'Acessos';
+  static const allScreensFilter = 'Todas as telas';
+  static const action = 'Ação';
+  static const allActions = 'Todas as ações';
+  static const summary = 'O que aconteceu';
+  static const details = 'Detalhes';
+  static const searchEventsHint = 'Resumo, registro ou chave';
+  static const noEvents = 'Nenhuma atividade no período.';
+
   // Validacao de formularios
   static const required = 'Campo obrigatório.';
   static const invalidEmail = 'Informe um e-mail válido.';
@@ -214,6 +256,29 @@ abstract final class Strings {
     'ACCESS_LOG_LIST_APP_INVALID': 'Tipo de app inválido.',
     'ACCESS_LOG_LIST_PERIOD_INVALID':
         'A data inicial deve ser anterior à data final.',
+    // Backend: telas, permissoes e log de atividades
+    'SCREEN_LIST_FORBIDDEN': 'Sessão inválida. Entre de novo.',
+    'ACCESS_PROFILE_SCREENS_INVALID': 'Lista de telas inválida.',
+    'ACCESS_PROFILE_SCREEN_INVALID': 'Tela inválida: {Screen}.',
+    'EVENT_LOG_LIST_COMPANY_REQUIRED': 'Empresa não informada.',
+    'EVENT_LOG_LIST_FORBIDDEN': 'Você não tem acesso a esta empresa.',
+    'EVENT_LOG_LIST_ACTION_INVALID': 'Tipo de ação inválido.',
+    'EVENT_LOG_LIST_PERIOD_INVALID':
+        'A data inicial deve ser anterior à data final.',
+    // Edge Function user-create
+    'USER_CREATE_COMPANY_REQUIRED': 'Empresa não informada.',
+    'USER_CREATE_FORBIDDEN':
+        'Somente administradores da empresa podem cadastrar usuários.',
+    'USER_CREATE_EMAIL_REQUIRED': 'Informe o e-mail.',
+    'USER_CREATE_EMAIL_INVALID': 'E-mail inválido: {Email}.',
+    'USER_CREATE_NAME_REQUIRED': 'Informe o nome.',
+    'USER_CREATE_PASSWORD_WEAK':
+        'A senha inicial precisa ter ao menos 8 caracteres.',
+    'USER_CREATE_AUTH_FAILED': 'Não foi possível criar a conta. {Detail}',
+    'USER_CREATE_BACKEND_ERROR': 'Falha no cadastro. {Detail}',
+    'USER_CREATE_UNAUTHORIZED': 'Sessão inválida. Entre de novo.',
+    'USER_CREATE_METHOD': 'Requisição inválida.',
+    'USER_CREATE_BODY_INVALID': 'Dados inválidos.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',

@@ -12,12 +12,14 @@ import '../../../shared/widgets/app_shell.dart';
 import '../../../shared/widgets/app_snack.dart';
 import '../../../shared/widgets/app_status_chip.dart';
 import '../../../shared/widgets/app_table.dart';
+import '../../session/application/permissions.dart';
+import '../../session/domain/screen_codes.dart';
 import '../application/profiles_controller.dart';
 import '../domain/access_profile.dart';
 import 'profile_form_dialog.dart';
 
-/// Cadastro de perfis de acesso da empresa atual.
-/// Qualquer usuario ve a lista; so administrador cria/edita.
+/// Perfis de acesso da empresa atual: quem pode ver (ler) ve a lista; criar
+/// e alterar dependem da permissao na tela PROFILES.
 class ProfilesPage extends ConsumerStatefulWidget {
   const ProfilesPage({super.key});
 
@@ -35,8 +37,20 @@ class _ProfilesPageState extends ConsumerState<ProfilesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final canRead = ref.watch(canReadProvider(ScreenCodes.profiles));
+    if (!canRead) {
+      return const AppShell(
+        section: AppSection.profiles,
+        child: AppEmptyState(
+          icon: Icons.lock_outline_rounded,
+          title: Strings.noPermissionTitle,
+          subtitle: Strings.noPermissionSubtitle,
+        ),
+      );
+    }
+    final canCreate = ref.watch(canCreateProvider(ScreenCodes.profiles));
+    final canUpdate = ref.watch(canUpdateProvider(ScreenCodes.profiles));
     final async = ref.watch(profilesProvider);
-    final isAdmin = ref.watch(isCompanyAdminProvider);
 
     return AppShell(
       section: AppSection.profiles,
@@ -54,7 +68,7 @@ class _ProfilesPageState extends ConsumerState<ProfilesPage> {
                   selected: _showInactive,
                   onSelected: (v) => setState(() => _showInactive = v),
                 ),
-                if (isAdmin)
+                if (canCreate)
                   AppButton(
                     label: Strings.newProfile,
                     icon: Icons.add_rounded,
@@ -81,7 +95,7 @@ class _ProfilesPageState extends ConsumerState<ProfilesPage> {
                       title: Strings.noProfiles,
                     );
                   }
-                  final onTap = isAdmin ? _openForm : null;
+                  final onTap = canUpdate ? _openForm : null;
                   return ResponsiveBuilder(
                     mobile: (_) => _ProfileCards(items: items, onTap: onTap),
                     desktop: (_) => _ProfileTable(items: items, onTap: onTap),
@@ -96,6 +110,12 @@ class _ProfilesPageState extends ConsumerState<ProfilesPage> {
   }
 }
 
+String _screensLabel(AccessProfile p) {
+  if (p.isAdmin) return Strings.allScreens;
+  if (p.screens.isEmpty) return Strings.noScreens;
+  return Strings.screensCount(p.screens.length);
+}
+
 class _ProfileTable extends StatelessWidget {
   const _ProfileTable({required this.items, this.onTap});
 
@@ -105,10 +125,11 @@ class _ProfileTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppTable(
-      minWidth: 640,
+      minWidth: 760,
       columns: const [
         DataColumn(label: Text(Strings.name)),
         DataColumn(label: Text(Strings.level), numeric: true),
+        DataColumn(label: Text(Strings.screensTitle)),
         DataColumn(label: Text(Strings.users), numeric: true),
         DataColumn(label: Text(Strings.status)),
         DataColumn(label: Text(Strings.actions)),
@@ -139,6 +160,30 @@ class _ProfileTable extends StatelessWidget {
               ),
               DataCell(
                 AppTagChip(label: '${p.itLevel}', highlighted: p.isAdmin),
+              ),
+              DataCell(
+                Wrap(
+                  spacing: AppSpacing.xs,
+                  runSpacing: AppSpacing.xs,
+                  children: p.isAdmin || p.screens.isEmpty
+                      ? [
+                          AppTagChip(
+                            label: _screensLabel(p),
+                            highlighted: p.isAdmin,
+                          ),
+                        ]
+                      : [
+                          for (final s in p.screens)
+                            AppTagChip(
+                              label: [
+                                s.vcName,
+                                if (s.idCreate) 'C',
+                                if (s.idUpdate) 'A',
+                              ].join(' '),
+                              icon: Icons.visibility_outlined,
+                            ),
+                        ],
+                ),
               ),
               DataCell(Text('${p.qtUsers}')),
               DataCell(AppStatusChip(status: p.itStatus)),
@@ -196,6 +241,10 @@ class _ProfileCards extends StatelessWidget {
                   AppTagChip(
                     label: '${Strings.level} ${p.itLevel}',
                     highlighted: p.isAdmin,
+                  ),
+                  AppTagChip(
+                    label: _screensLabel(p),
+                    icon: Icons.grid_view_rounded,
                   ),
                   AppTagChip(
                     label: Strings.profileUsers(p.qtUsers),

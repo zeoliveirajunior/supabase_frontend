@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/responsive/breakpoints.dart';
 import '../../core/theme/app_theme.dart';
 import '../../features/session/application/session_controller.dart';
+import '../../features/session/domain/screen_codes.dart';
 import '../../features/session/presentation/branch_selection_dialog.dart';
 import '../../l10n/strings.dart';
 import 'app_logo.dart';
@@ -14,25 +15,65 @@ enum AppSection { dashboard, users, profiles, logs }
 class _Destination {
   const _Destination({
     required this.section,
+    required this.code,
     required this.icon,
     required this.selectedIcon,
     required this.label,
     required this.route,
-    this.adminOnly = false,
   });
 
   final AppSection section;
+  final String code;
   final IconData icon;
   final IconData selectedIcon;
   final String label;
   final String route;
-  final bool adminOnly;
 }
 
-/// Moldura das telas internas: menu lateral no desktop, barra inferior no
-/// mobile, cabecalho com a filial atual (clicavel para trocar) e o usuario.
-/// Secoes de administrador somem do menu para usuarios comuns.
-class AppShell extends ConsumerWidget {
+const _dashboard = _Destination(
+  section: AppSection.dashboard,
+  code: ScreenCodes.dashboard,
+  icon: Icons.space_dashboard_outlined,
+  selectedIcon: Icons.space_dashboard_rounded,
+  label: Strings.dashboard,
+  route: '/dashboard',
+);
+
+/// Itens do quadrado de administracao (ao lado do Dashboard).
+const _adminItems = [
+  _Destination(
+    section: AppSection.users,
+    code: ScreenCodes.users,
+    icon: Icons.people_outline_rounded,
+    selectedIcon: Icons.people_rounded,
+    label: Strings.users,
+    route: '/usuarios',
+  ),
+  _Destination(
+    section: AppSection.profiles,
+    code: ScreenCodes.profiles,
+    icon: Icons.badge_outlined,
+    selectedIcon: Icons.badge_rounded,
+    label: Strings.profiles,
+    route: '/perfis',
+  ),
+  _Destination(
+    section: AppSection.logs,
+    code: ScreenCodes.logs,
+    icon: Icons.receipt_long_outlined,
+    selectedIcon: Icons.receipt_long_rounded,
+    label: Strings.logs,
+    route: '/logs',
+  ),
+];
+
+/// Moldura das telas internas.
+///   Desktop: menu lateral com o Dashboard e, ao lado dele, um quadrado que
+///            abre/fecha Usuarios, Perfis e Logs (so os que o usuario pode ver).
+///   Mobile:  barra inferior com Dashboard e o quadrado, que abre uma folha
+///            com os tres itens.
+/// Cabecalho com a filial atual (clicavel para trocar) e o usuario.
+class AppShell extends ConsumerStatefulWidget {
   const AppShell({
     super.key,
     required this.section,
@@ -44,112 +85,59 @@ class AppShell extends ConsumerWidget {
   final Widget child;
   final String? title;
 
-  static const _all = [
-    _Destination(
-      section: AppSection.dashboard,
-      icon: Icons.space_dashboard_outlined,
-      selectedIcon: Icons.space_dashboard_rounded,
-      label: Strings.dashboard,
-      route: '/dashboard',
-    ),
-    _Destination(
-      section: AppSection.users,
-      icon: Icons.people_outline_rounded,
-      selectedIcon: Icons.people_rounded,
-      label: Strings.users,
-      route: '/usuarios',
-      adminOnly: true,
-    ),
-    _Destination(
-      section: AppSection.profiles,
-      icon: Icons.badge_outlined,
-      selectedIcon: Icons.badge_rounded,
-      label: Strings.profiles,
-      route: '/perfis',
-    ),
-    _Destination(
-      section: AppSection.logs,
-      icon: Icons.receipt_long_outlined,
-      selectedIcon: Icons.receipt_long_rounded,
-      label: Strings.logs,
-      route: '/logs',
-    ),
-  ];
+  @override
+  ConsumerState<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends ConsumerState<AppShell> {
+  late bool _adminOpen = widget.section != AppSection.dashboard;
+
+  String get _pageTitle =>
+      widget.title ??
+      [
+        _dashboard,
+        ..._adminItems,
+      ].firstWhere((d) => d.section == widget.section).label;
+
+  void _go(BuildContext context, _Destination d) {
+    if (d.section != widget.section) context.go(d.route);
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isAdmin = ref.watch(
-      sessionControllerProvider.select(
-        (s) => s.selected?.company.idAdmin ?? false,
-      ),
+  Widget build(BuildContext context) {
+    final selected = ref.watch(
+      sessionControllerProvider.select((s) => s.selected),
     );
-    final destinations = [
-      for (final d in _all)
-        if (!d.adminOnly || isAdmin) d,
+    final visibleAdmin = [
+      for (final d in _adminItems)
+        if (selected?.canRead(d.code) ?? false) d,
     ];
-    final selectedIndex = destinations
-        .indexWhere((d) => d.section == section)
-        .clamp(0, destinations.length - 1);
-    final pageTitle =
-        title ?? _all.firstWhere((d) => d.section == section).label;
-
-    void onSelect(int index) {
-      final route = destinations[index].route;
-      if (index != selectedIndex) context.go(route);
-    }
+    final title = _pageTitle;
 
     return ResponsiveBuilder(
-      mobile: (_) => Scaffold(
-        appBar: AppBar(
-          title: Text(pageTitle),
-          actions: const [
-            _BranchChip(compact: true),
-            SizedBox(width: AppSpacing.xs),
-            _UserMenu(compact: true),
-            SizedBox(width: AppSpacing.sm),
-          ],
-        ),
-        body: child,
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: selectedIndex,
-          onDestinationSelected: onSelect,
-          destinations: [
-            for (final d in destinations)
-              NavigationDestination(
-                icon: Icon(d.icon),
-                selectedIcon: Icon(d.selectedIcon),
-                label: d.label,
-              ),
-          ],
-        ),
+      mobile: (_) => _MobileShell(
+        title: title,
+        section: widget.section,
+        adminItems: visibleAdmin,
+        onGo: (d) => _go(context, d),
+        child: widget.child,
       ),
       desktop: (_) => Scaffold(
         body: Row(
           children: [
-            NavigationRail(
-              extended: context.isWide,
-              minExtendedWidth: 224,
-              selectedIndex: selectedIndex,
-              onDestinationSelected: onSelect,
-              leading: Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                child: AppLogo(size: 32, showWordmark: context.isWide),
-              ),
-              destinations: [
-                for (final d in destinations)
-                  NavigationRailDestination(
-                    icon: Icon(d.icon),
-                    selectedIcon: Icon(d.selectedIcon),
-                    label: Text(d.label),
-                  ),
-              ],
+            _Sidebar(
+              section: widget.section,
+              adminItems: visibleAdmin,
+              adminOpen: _adminOpen,
+              onToggleAdmin: () => setState(() => _adminOpen = !_adminOpen),
+              onGo: (d) => _go(context, d),
             ),
             const VerticalDivider(width: 1),
             Expanded(
               child: Column(
                 children: [
-                  _TopBar(title: pageTitle),
-                  Expanded(child: child),
+                  _TopBar(title: title),
+                  Expanded(child: widget.child),
                 ],
               ),
             ),
@@ -157,6 +145,213 @@ class AppShell extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+// --- desktop -----------------------------------------------------------------
+
+class _Sidebar extends StatelessWidget {
+  const _Sidebar({
+    required this.section,
+    required this.adminItems,
+    required this.adminOpen,
+    required this.onToggleAdmin,
+    required this.onGo,
+  });
+
+  final AppSection section;
+  final List<_Destination> adminItems;
+  final bool adminOpen;
+  final VoidCallback onToggleAdmin;
+  final ValueChanged<_Destination> onGo;
+
+  @override
+  Widget build(BuildContext context) {
+    final wide = context.isWide;
+    final adminSelected = adminItems.any((d) => d.section == section);
+
+    return Container(
+      width: wide ? 248 : 88,
+      color: AppColors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.lg,
+              AppSpacing.md,
+              AppSpacing.xl,
+            ),
+            child: Center(child: AppLogo(size: 32, showWordmark: wide)),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _NavTile(
+                    destination: _dashboard,
+                    selected: section == AppSection.dashboard,
+                    wide: wide,
+                    onTap: () => onGo(_dashboard),
+                  ),
+                ),
+                if (adminItems.isNotEmpty) ...[
+                  const SizedBox(width: AppSpacing.xs),
+                  _AdminSquare(
+                    open: adminOpen,
+                    highlighted: adminSelected,
+                    onTap: onToggleAdmin,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            alignment: Alignment.topCenter,
+            child: adminOpen && adminItems.isNotEmpty
+                ? Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.sm,
+                      AppSpacing.sm,
+                      AppSpacing.sm,
+                      0,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (wide)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              AppSpacing.md,
+                              AppSpacing.xs,
+                              AppSpacing.md,
+                              AppSpacing.xs,
+                            ),
+                            child: Text(
+                              Strings.adminMenu.toUpperCase(),
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: AppColors.muted,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 1,
+                                  ),
+                            ),
+                          ),
+                        for (final d in adminItems)
+                          _NavTile(
+                            destination: d,
+                            selected: d.section == section,
+                            wide: wide,
+                            onTap: () => onGo(d),
+                          ),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// O "quadrado": abre e fecha os itens de administracao.
+class _AdminSquare extends StatelessWidget {
+  const _AdminSquare({
+    required this.open,
+    required this.highlighted,
+    required this.onTap,
+  });
+
+  final bool open;
+  final bool highlighted;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final active = open || highlighted;
+    return Tooltip(
+      message: Strings.openAdminMenu,
+      child: Material(
+        color: active ? AppColors.mint : AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          onTap: onTap,
+          child: SizedBox(
+            width: 44,
+            height: 44,
+            child: Icon(
+              open ? Icons.grid_view_rounded : Icons.grid_view_outlined,
+              size: 22,
+              color: active ? AppColors.primaryDark : AppColors.muted,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavTile extends StatelessWidget {
+  const _NavTile({
+    required this.destination,
+    required this.selected,
+    required this.wide,
+    required this.onTap,
+  });
+
+  final _Destination destination;
+  final bool selected;
+  final bool wide;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? AppColors.primaryDark : AppColors.muted;
+    final tile = Material(
+      color: selected ? AppColors.mint : Colors.transparent,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        onTap: onTap,
+        child: SizedBox(
+          height: 44,
+          child: Row(
+            mainAxisAlignment: wide
+                ? MainAxisAlignment.start
+                : MainAxisAlignment.center,
+            children: [
+              SizedBox(width: wide ? AppSpacing.md : 0),
+              Icon(
+                selected ? destination.selectedIcon : destination.icon,
+                size: 22,
+                color: color,
+              ),
+              if (wide) ...[
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    destination.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: color,
+                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+    return wide ? tile : Tooltip(message: destination.label, child: tile);
   }
 }
 
@@ -191,6 +386,131 @@ class _TopBar extends StatelessWidget {
     );
   }
 }
+
+// --- mobile ------------------------------------------------------------------
+
+class _MobileShell extends StatelessWidget {
+  const _MobileShell({
+    required this.title,
+    required this.section,
+    required this.adminItems,
+    required this.onGo,
+    required this.child,
+  });
+
+  final String title;
+  final AppSection section;
+  final List<_Destination> adminItems;
+  final ValueChanged<_Destination> onGo;
+  final Widget child;
+
+  Future<void> _openAdminSheet(BuildContext context) async {
+    final picked = await showModalBottomSheet<_Destination>(
+      context: context,
+      useSafeArea: true,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.sm,
+                  AppSpacing.lg,
+                  AppSpacing.sm,
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.grid_view_rounded,
+                      color: AppColors.primaryDark,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      Strings.adminMenu,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              for (final d in adminItems)
+                ListTile(
+                  leading: Icon(
+                    d.section == section ? d.selectedIcon : d.icon,
+                    color: d.section == section
+                        ? AppColors.primaryDark
+                        : AppColors.muted,
+                  ),
+                  title: Text(
+                    d.label,
+                    style: TextStyle(
+                      fontWeight: d.section == section
+                          ? FontWeight.w800
+                          : FontWeight.w600,
+                    ),
+                  ),
+                  selected: d.section == section,
+                  selectedTileColor: AppColors.mint,
+                  onTap: () => Navigator.of(context).pop(d),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (picked != null) onGo(picked);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final adminSelected = adminItems.any((d) => d.section == section);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+        actions: const [
+          _BranchChip(compact: true),
+          SizedBox(width: AppSpacing.xs),
+          _UserMenu(compact: true),
+          SizedBox(width: AppSpacing.sm),
+        ],
+      ),
+      body: child,
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: adminSelected ? 1 : 0,
+        onDestinationSelected: (i) {
+          if (i == 0) {
+            onGo(_dashboard);
+          } else {
+            _openAdminSheet(context);
+          }
+        },
+        destinations: [
+          NavigationDestination(
+            icon: Icon(_dashboard.icon),
+            selectedIcon: Icon(_dashboard.selectedIcon),
+            label: _dashboard.label,
+          ),
+          if (adminItems.isNotEmpty)
+            const NavigationDestination(
+              icon: Icon(Icons.grid_view_outlined),
+              selectedIcon: Icon(Icons.grid_view_rounded),
+              label: Strings.adminMenu,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// --- cabecalho: filial e usuario --------------------------------------------
 
 /// Empresa · filial atual. Clique abre o pop-up para trocar.
 class _BranchChip extends ConsumerWidget {

@@ -20,8 +20,9 @@ import '../../../shared/widgets/app_table.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/choice.dart';
 import '../../../shared/widgets/searchable_dropdown.dart';
-import '../../profiles/application/profiles_controller.dart';
 import '../../profiles/domain/access_profile.dart';
+import '../../session/application/permissions.dart';
+import '../../session/domain/screen_codes.dart';
 import '../application/users_controller.dart';
 import '../data/user_repository.dart';
 import '../domain/company_user.dart';
@@ -29,8 +30,9 @@ import 'user_form_dialog.dart';
 
 final _dateTime = DateFormat('dd/MM/yyyy HH:mm');
 
-/// Usuarios da empresa atual: vincular, editar acesso por filial, bloquear,
-/// remover. Somente administrador (o menu nem mostra para os demais).
+/// Usuarios da empresa atual: cadastrar, editar acesso por filial, bloquear,
+/// remover. A lista exige ler USERS (o backend exige administrador para
+/// listar); cadastrar exige criar; editar/remover exigem alterar.
 class UsersPage extends ConsumerStatefulWidget {
   const UsersPage({super.key});
 
@@ -63,7 +65,12 @@ class _UsersPageState extends ConsumerState<UsersPage> {
 
   Future<void> _openForm([CompanyUser? user]) async {
     final saved = await UserFormDialog.show(context, user: user);
-    if (saved && mounted) AppSnack.success(context, Strings.savedSuccess);
+    if (saved && mounted) {
+      AppSnack.success(
+        context,
+        user == null ? Strings.userCreated : Strings.savedSuccess,
+      );
+    }
   }
 
   Future<void> _unlink(CompanyUser user) async {
@@ -84,17 +91,19 @@ class _UsersPageState extends ConsumerState<UsersPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = ref.watch(isCompanyAdminProvider);
-    if (!isAdmin) {
+    final canRead = ref.watch(canReadProvider(ScreenCodes.users));
+    if (!canRead) {
       return const AppShell(
         section: AppSection.users,
         child: AppEmptyState(
           icon: Icons.lock_outline_rounded,
-          title: Strings.adminOnlyTitle,
-          subtitle: Strings.adminOnlySubtitle,
+          title: Strings.noPermissionTitle,
+          subtitle: Strings.noPermissionSubtitle,
         ),
       );
     }
+    final canCreate = ref.watch(canCreateProvider(ScreenCodes.users));
+    final canUpdate = ref.watch(canUpdateProvider(ScreenCodes.users));
 
     final filters = ref.watch(userFiltersProvider);
     final async = ref.watch(usersProvider);
@@ -128,12 +137,13 @@ class _UsersPageState extends ConsumerState<UsersPage> {
               title: Strings.usersTitle,
               subtitle: Strings.usersSubtitle,
               actions: [
-                AppButton(
-                  label: Strings.linkUser,
-                  icon: Icons.person_add_alt_1_rounded,
-                  expanded: false,
-                  onPressed: () => _openForm(),
-                ),
+                if (canCreate)
+                  AppButton(
+                    label: Strings.newUser,
+                    icon: Icons.person_add_alt_1_rounded,
+                    expanded: false,
+                    onPressed: () => _openForm(),
+                  ),
               ],
             ),
             const SizedBox(height: AppSpacing.md),
@@ -211,13 +221,13 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                         child: ResponsiveBuilder(
                           mobile: (_) => _UserCards(
                             users: page.users,
-                            onEdit: _openForm,
-                            onUnlink: _unlink,
+                            onEdit: canUpdate ? _openForm : null,
+                            onUnlink: canUpdate ? _unlink : null,
                           ),
                           desktop: (_) => _UserTable(
                             users: page.users,
-                            onEdit: _openForm,
-                            onUnlink: _unlink,
+                            onEdit: canUpdate ? _openForm : null,
+                            onUnlink: canUpdate ? _unlink : null,
                           ),
                         ),
                       ),
@@ -270,6 +280,29 @@ Widget _accessChips(CompanyUser user) => Wrap(
   ],
 );
 
+Widget _actions(
+  CompanyUser u,
+  ValueChanged<CompanyUser>? onEdit,
+  ValueChanged<CompanyUser>? onUnlink,
+) => Row(
+  mainAxisSize: MainAxisSize.min,
+  children: [
+    IconButton(
+      tooltip: Strings.edit,
+      icon: const Icon(Icons.edit_outlined),
+      onPressed: onEdit == null ? null : () => onEdit(u),
+    ),
+    IconButton(
+      tooltip: Strings.unlinkUser,
+      icon: Icon(
+        Icons.person_remove_outlined,
+        color: onUnlink == null ? AppColors.muted : AppColors.danger,
+      ),
+      onPressed: onUnlink == null ? null : () => onUnlink(u),
+    ),
+  ],
+);
+
 class _UserTable extends StatelessWidget {
   const _UserTable({
     required this.users,
@@ -278,8 +311,8 @@ class _UserTable extends StatelessWidget {
   });
 
   final List<CompanyUser> users;
-  final ValueChanged<CompanyUser> onEdit;
-  final ValueChanged<CompanyUser> onUnlink;
+  final ValueChanged<CompanyUser>? onEdit;
+  final ValueChanged<CompanyUser>? onUnlink;
 
   @override
   Widget build(BuildContext context) {
@@ -336,26 +369,7 @@ class _UserTable extends StatelessWidget {
                       : _dateTime.format(u.dhLastLogin!.toLocal()),
                 ),
               ),
-              DataCell(
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      tooltip: Strings.edit,
-                      icon: const Icon(Icons.edit_outlined),
-                      onPressed: () => onEdit(u),
-                    ),
-                    IconButton(
-                      tooltip: Strings.unlinkUser,
-                      icon: const Icon(
-                        Icons.person_remove_outlined,
-                        color: AppColors.danger,
-                      ),
-                      onPressed: () => onUnlink(u),
-                    ),
-                  ],
-                ),
-              ),
+              DataCell(_actions(u, onEdit, onUnlink)),
             ],
           ),
       ],
@@ -371,8 +385,8 @@ class _UserCards extends StatelessWidget {
   });
 
   final List<CompanyUser> users;
-  final ValueChanged<CompanyUser> onEdit;
-  final ValueChanged<CompanyUser> onUnlink;
+  final ValueChanged<CompanyUser>? onEdit;
+  final ValueChanged<CompanyUser>? onUnlink;
 
   @override
   Widget build(BuildContext context) {
@@ -427,19 +441,7 @@ class _UserCards extends StatelessWidget {
                         ),
                       ),
                     ),
-                    IconButton(
-                      tooltip: Strings.edit,
-                      icon: const Icon(Icons.edit_outlined),
-                      onPressed: () => onEdit(u),
-                    ),
-                    IconButton(
-                      tooltip: Strings.unlinkUser,
-                      icon: const Icon(
-                        Icons.person_remove_outlined,
-                        color: AppColors.danger,
-                      ),
-                      onPressed: () => onUnlink(u),
-                    ),
+                    _actions(u, onEdit, onUnlink),
                   ],
                 ),
               ],

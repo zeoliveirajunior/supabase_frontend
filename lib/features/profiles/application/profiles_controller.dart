@@ -10,6 +10,12 @@ final currentCompanyProvider = Provider<int?>(
       ref.watch(sessionControllerProvider.select((s) => s.selected?.nrCompany)),
 );
 
+/// Filial atual (contexto do log de atividades).
+final currentBranchNumberProvider = Provider<int?>(
+  (ref) =>
+      ref.watch(sessionControllerProvider.select((s) => s.selected?.nrBranch)),
+);
+
 /// Administrador da empresa atual?
 final isCompanyAdminProvider = Provider<bool>(
   (ref) => ref.watch(
@@ -17,6 +23,11 @@ final isCompanyAdminProvider = Provider<bool>(
       (s) => s.selected?.company.idAdmin ?? false,
     ),
   ),
+);
+
+/// Catalogo de telas (global). Fica em cache enquanto o app viver.
+final screensProvider = FutureProvider<List<ScreenInfo>>(
+  (ref) => ref.read(profileRepositoryProvider).screens(),
 );
 
 /// Perfis da empresa atual (ativos e inativos). Recarrega ao trocar de empresa.
@@ -33,12 +44,22 @@ class ProfilesController extends AutoDisposeAsyncNotifier<List<AccessProfile>> {
     await future;
   }
 
-  Future<void> create({required String vcName, required int itLevel}) async {
+  Future<void> create({
+    required String vcName,
+    required int itLevel,
+    List<ProfileScreen>? screens,
+  }) async {
     final nrCompany = ref.read(currentCompanyProvider);
     if (nrCompany == null) return;
     await ref
         .read(profileRepositoryProvider)
-        .create(nrCompany: nrCompany, vcName: vcName, itLevel: itLevel);
+        .create(
+          nrCompany: nrCompany,
+          nrBranch: ref.read(currentBranchNumberProvider),
+          vcName: vcName,
+          itLevel: itLevel,
+          screens: screens,
+        );
     await refresh();
   }
 
@@ -47,6 +68,7 @@ class ProfilesController extends AutoDisposeAsyncNotifier<List<AccessProfile>> {
     String? vcName,
     int? itLevel,
     int? itStatus,
+    List<ProfileScreen>? screens,
   }) async {
     final nrCompany = ref.read(currentCompanyProvider);
     if (nrCompany == null) return;
@@ -54,10 +76,12 @@ class ProfilesController extends AutoDisposeAsyncNotifier<List<AccessProfile>> {
         .read(profileRepositoryProvider)
         .update(
           nrCompany: nrCompany,
+          nrBranch: ref.read(currentBranchNumberProvider),
           nrProfile: nrProfile,
           vcName: vcName,
           itLevel: itLevel,
           itStatus: itStatus,
+          screens: screens,
         );
     await refresh();
   }

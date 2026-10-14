@@ -35,8 +35,29 @@ class UserFilters {
   );
 }
 
-/// `ad.company_user_list` / `ad.company_user_save` (somente administrador) e
-/// `ad.branch_list`.
+/// Dados do cadastro de um usuario novo (Edge Function `user-create`).
+class NewUser {
+  const NewUser({
+    required this.name,
+    required this.email,
+    required this.password,
+    required this.branches,
+    this.cpf,
+    this.phone,
+    this.mobile,
+  });
+
+  final String name;
+  final String email;
+  final String password;
+  final String? cpf;
+  final String? phone;
+  final String? mobile;
+  final List<BranchAssignment> branches;
+}
+
+/// `ad.company_user_list` / `ad.company_user_save` (somente administrador),
+/// `ad.branch_list` e a Edge Function `user-create`.
 class UserRepository {
   UserRepository(this._gateway);
 
@@ -74,15 +95,39 @@ class UserRepository {
     ];
   }
 
+  /// Cadastra o usuario pela empresa: a Edge Function cria a conta no Auth
+  /// (se nao existir) e faz o vinculo com filiais x perfis.
+  /// Devolve `id_created`: true quando a conta foi criada agora.
+  Future<bool> create({
+    required int nrCompany,
+    int? nrBranch,
+    required NewUser user,
+  }) async {
+    final json = await _gateway.invokeFunction('user-create', {
+      'nr_company': nrCompany,
+      'nr_branch': nrBranch,
+      'vc_name': user.name.trim(),
+      'vc_email': user.email.trim().toLowerCase(),
+      'vc_password': user.password,
+      'vc_cpf': user.cpf,
+      'vc_phone': user.phone,
+      'vc_mobile': user.mobile,
+      'branches': [for (final b in user.branches) b.toJson()],
+    });
+    return json['id_created'] == true;
+  }
+
   /// Vincula um usuario JA cadastrado no Auth (localizado pelo e-mail).
   Future<int> link({
     required int nrCompany,
+    int? nrBranch,
     required String email,
     required List<BranchAssignment> branches,
   }) async {
     final json = await _gateway.rpc('company_user_save', {
       'vc_action': 'I',
       'nr_company': nrCompany,
+      if (nrBranch != null) 'nr_branch': nrBranch,
       'vc_email': email.trim(),
       'branches': [for (final b in branches) b.toJson()],
     });
@@ -92,6 +137,7 @@ class UserRepository {
   /// Situacao/motivo e, se informado, substitui todas as filiais x perfis.
   Future<void> update({
     required int nrCompany,
+    int? nrBranch,
     required int nrUser,
     int? itStatus,
     String? blockReason,
@@ -100,6 +146,7 @@ class UserRepository {
     await _gateway.rpc('company_user_save', {
       'vc_action': 'U',
       'nr_company': nrCompany,
+      if (nrBranch != null) 'nr_branch': nrBranch,
       'nr_user': nrUser,
       if (itStatus != null) 'it_status': itStatus,
       if (itStatus != null) 'vc_block_reason': blockReason,
@@ -107,10 +154,15 @@ class UserRepository {
     });
   }
 
-  Future<void> unlink({required int nrCompany, required int nrUser}) async {
+  Future<void> unlink({
+    required int nrCompany,
+    int? nrBranch,
+    required int nrUser,
+  }) async {
     await _gateway.rpc('company_user_save', {
       'vc_action': 'D',
       'nr_company': nrCompany,
+      if (nrBranch != null) 'nr_branch': nrBranch,
       'nr_user': nrUser,
     });
   }
