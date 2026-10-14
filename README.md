@@ -1,4 +1,4 @@
-# Odonto — app Flutter (web + Android + iOS)
+# Clinify — app Flutter (web + Android + iOS)
 
 Front-end da clínica odontológica. Um único código Flutter para **web**, **Android** e **iOS**,
 com layouts diferentes para desktop e mobile. O backend é o Supabase do repositório

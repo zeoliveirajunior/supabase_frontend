@@ -1,4 +1,4 @@
-# Odonto — app Flutter (web + Android + iOS) da clínica odontológica
+# Clinify — app Flutter (web + Android + iOS) da clínica odontológica
 
 ## O que é este projeto
 
@@ -13,7 +13,7 @@ uma filial) → **dashboard** (em branco até existirem dados) → **usuários**
 acesso por filial × perfil, bloquear, remover), **perfis de acesso** (lista para todos; criar/editar
 só admin) e **logs de acesso** (admin vê a empresa, usuário comum só os próprios).
 
-Pacote Dart `odonto_app`; id Android/iOS `br.com.odonto.odonto_app`; nome de exibição **Odonto**.
+Pacote Dart `odonto_app`; id Android/iOS `br.com.odonto.odonto_app`; nome de exibição **Clinify** (logomarca dourada em `assets/images/clinify_logo.svg`; pacote e ids continuam `odonto_app`).
 
 ---
 
